@@ -28,9 +28,10 @@ const PHASES = [
     subtitle: "Tabuada do 2",
     mapPos: { left: 19.3, top: 59.9 },
     motion: "flutterSlow", shape: "bird", icon: "🐦",
+    interaction: "drag", targetIcon: "🪱",
     palette: ["#FFB4A2", "#B5838D", "#8D99AE", "#E5989B"],
     bg: ["#CDE7B0", "#A8D8B9"],
-    mechanicLabel: "Chame o passarinho certo!"
+    mechanicLabel: "Arraste o passarinho até a minhoca certa!"
   },
   {
     id: 3, table: 3,
@@ -38,9 +39,10 @@ const PHASES = [
     subtitle: "Tabuada do 3",
     mapPos: { left: 30.2, top: 41.9 },
     motion: "flutter", shape: "butterfly", icon: "🦋",
+    interaction: "drag", targetIcon: "🌸",
     palette: ["#B983FF", "#FF9F9F", "#5AC8FA", "#FF7EB6"],
     bg: ["#FDE2E4", "#DCEEDD"],
-    mechanicLabel: "Alcance a borboleta certa!"
+    mechanicLabel: "Arraste a borboleta até a flor certa!"
   },
   {
     id: 4, table: 4,
@@ -108,9 +110,10 @@ const PHASES = [
     subtitle: "Tabuada do 10",
     mapPos: { left: 90.8, top: 58.6 },
     motion: "swim", shape: "gem", icon: "🔥",
+    interaction: "drag", targetIcon: "🪨",
     palette: ["#E85D04", "#F48C06", "#DC2F02", "#FFBA08"],
     bg: ["#3A0CA3", "#7B2CBF"],
-    mechanicLabel: "Pegue a brasa certa!"
+    mechanicLabel: "Arraste a brasa até a pedra certa!"
   },
   {
     id: 11, table: "challenge",

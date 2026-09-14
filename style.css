@@ -513,6 +513,34 @@ button {
   75% { transform: translateX(8px) rotate(4deg); }
 }
 
+/* Fases de arrastar (arraste o mensageiro até o alvo certo) — alvos
+   parados nos 4 cantos do campo, sem animação de posição, para dar
+   tempo de mirar o arraste. */
+.item-target {
+  box-shadow: 0 8px 16px rgba(0,0,0,0.28), inset 0 -6px 10px rgba(0,0,0,0.12), inset 0 6px 10px rgba(255,255,255,0.35), 0 0 0 4px rgba(255,255,255,0.35);
+  cursor: default;
+}
+.shape-target { border-radius: 40% 40% 45% 45% / 46% 46% 54% 54%; }
+
+.item-mover {
+  cursor: grab;
+  touch-action: none;
+  z-index: 20;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.32), inset 0 -6px 10px rgba(0,0,0,0.12), inset 0 6px 10px rgba(255,255,255,0.35);
+  animation: moverBreathe 1.6s ease-in-out infinite;
+}
+.item-mover.dragging {
+  cursor: grabbing;
+  z-index: 30;
+  animation: none;
+  transform: scale(1.1);
+  box-shadow: 0 14px 26px rgba(0,0,0,0.4);
+}
+@keyframes moverBreathe {
+  0%, 100% { box-shadow: 0 10px 20px rgba(0,0,0,0.32), inset 0 -6px 10px rgba(0,0,0,0.12), inset 0 6px 10px rgba(255,255,255,0.35); }
+  50% { box-shadow: 0 10px 24px rgba(0,0,0,0.32), inset 0 -6px 10px rgba(0,0,0,0.12), inset 0 6px 10px rgba(255,255,255,0.5), 0 0 0 6px rgba(255,255,255,0.25); }
+}
+
 /* shape flourishes */
 .shape-balloon::after {
   content: ""; position: absolute; bottom: -22px; left: 50%;

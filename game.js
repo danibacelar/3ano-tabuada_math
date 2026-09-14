@@ -223,6 +223,12 @@ function spawnItems(question, phase) {
   const field = $("#play-field");
   field.querySelectorAll(".item").forEach(el => el.remove());
   const rect = field.getBoundingClientRect();
+
+  if (phase.interaction === "drag") {
+    spawnDragRound(question, phase, field, rect);
+    return;
+  }
+
   const n = question.options.length;
 
   question.options.forEach((value, i) => {
@@ -249,6 +255,134 @@ function spawnItems(question, phase) {
       startFlutter(item, rect, phase.motion === "flutterSlow" ? 2600 : 1800);
     }
   });
+}
+
+/* ------------------------- Mini-game de arrastar (drag & drop) ----------
+   Usado pelas fases com phase.interaction === "drag": um "mensageiro"
+   (passarinho, borboleta, brasa) parado no campo que a criança arrasta até
+   o alvo parado (minhoca, flor, pedra) com o resultado certo. Os alvos
+   ficam fixos em 4 cantos do campo — sem movimento rápido — para dar tempo
+   de ler e mirar o arraste. ------------------------------------------- */
+const DRAG_TARGET_GRID = [
+  { left: 26, top: 32 }, { left: 74, top: 32 },
+  { left: 26, top: 68 }, { left: 74, top: 68 }
+];
+
+function clamp(v, min, max) { return Math.min(Math.max(v, min), max); }
+
+function spawnDragRound(question, phase, field, rect) {
+  const w = Math.max(rect.width, 300);
+  const h = Math.max(rect.height, 320);
+  const itemPx = currentItemSize();
+  const targets = [];
+
+  question.options.forEach((value, i) => {
+    const spot = DRAG_TARGET_GRID[i % DRAG_TARGET_GRID.length];
+    const target = document.createElement("div");
+    target.className = `item item-target shape-target`;
+    target.dataset.value = value;
+    const color = phase.palette[i % phase.palette.length];
+    target.style.background = `radial-gradient(circle at 32% 28%, ${lighten(color)}, ${color} 75%)`;
+    target.style.left = clampedLeftPx(spot.left, w, itemPx) + "px";
+    target.style.top = clamp((h * spot.top / 100) - itemPx / 2, 6, h - itemPx - 6) + "px";
+
+    const badge = document.createElement("span");
+    badge.className = "item-badge";
+    badge.textContent = phase.targetIcon || "🎯";
+    target.appendChild(badge);
+
+    const label = document.createElement("span");
+    label.textContent = value;
+    target.appendChild(label);
+
+    field.appendChild(target);
+    targets.push(target);
+  });
+
+  const mover = document.createElement("div");
+  mover.className = `item item-mover shape-${phase.shape}`;
+  const moverColor = phase.palette[0];
+  mover.style.background = `radial-gradient(circle at 32% 28%, ${lighten(moverColor)}, ${moverColor} 75%)`;
+  mover.textContent = phase.icon;
+  mover.style.fontSize = "34px";
+
+  const homeLeft = clamp(w / 2 - itemPx / 2, 6, w - itemPx - 6);
+  const homeTop = clamp(h - itemPx - 26, 6, h - itemPx - 6);
+  mover.style.left = homeLeft + "px";
+  mover.style.top = homeTop + "px";
+  field.appendChild(mover);
+
+  setupDragMover(mover, targets, homeLeft, homeTop, rect, question.correct);
+}
+
+function setupDragMover(mover, targets, homeLeft, homeTop, rect, correct) {
+  let dragging = false;
+  let locked = false;
+  let startX = 0, startY = 0, originLeft = homeLeft, originTop = homeTop;
+  const w = rect.width, h = rect.height;
+  const itemPx = mover.offsetWidth || currentItemSize();
+
+  function snapTo(left, top, done) {
+    mover.style.transition = "left 0.28s ease, top 0.28s ease";
+    mover.style.left = left + "px";
+    mover.style.top = top + "px";
+    setTimeout(() => { mover.style.transition = ""; if (done) done(); }, 290);
+  }
+
+  function findDropTarget() {
+    const mRect = mover.getBoundingClientRect();
+    const cx = mRect.left + mRect.width / 2;
+    const cy = mRect.top + mRect.height / 2;
+    const margin = 16;
+    return targets.find(t => {
+      if (t.classList.contains("wrong-disabled") || t.dataset.locked) return false;
+      const r = t.getBoundingClientRect();
+      return cx >= r.left - margin && cx <= r.right + margin && cy >= r.top - margin && cy <= r.bottom + margin;
+    });
+  }
+
+  function onPointerDown(e) {
+    if (locked) return;
+    dragging = true;
+    startX = e.clientX; startY = e.clientY;
+    originLeft = parseFloat(mover.style.left) || homeLeft;
+    originTop = parseFloat(mover.style.top) || homeTop;
+    mover.style.transition = "";
+    mover.classList.add("dragging");
+    mover.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  }
+
+  function onPointerMove(e) {
+    if (!dragging) return;
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    const left = clamp(originLeft + dx, 0, Math.max(0, w - itemPx));
+    const top = clamp(originTop + dy, 0, Math.max(0, h - itemPx));
+    mover.style.left = left + "px";
+    mover.style.top = top + "px";
+  }
+
+  function onPointerUp(e) {
+    if (!dragging) return;
+    dragging = false;
+    mover.classList.remove("dragging");
+    const target = findDropTarget();
+    if (!target) { snapTo(homeLeft, homeTop); return; }
+    const value = Number(target.dataset.value);
+    if (value === correct) {
+      locked = true;
+      mover.style.transition = "left 0.22s ease, top 0.22s ease";
+      mover.style.left = target.style.left;
+      mover.style.top = target.style.top;
+    }
+    handleAnswer(target, value, correct);
+    if (value !== correct) snapTo(homeLeft, homeTop);
+  }
+
+  mover.addEventListener("pointerdown", onPointerDown);
+  mover.addEventListener("pointermove", onPointerMove);
+  mover.addEventListener("pointerup", onPointerUp);
+  mover.addEventListener("pointercancel", onPointerUp);
 }
 
 function lighten(hex) {
