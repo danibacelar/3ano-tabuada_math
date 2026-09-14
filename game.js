@@ -177,7 +177,11 @@ function startRound(phase) {
   state.facts = factsForPhase(phase);
   const length = phase.table === "challenge" ? ROUND_LENGTH.challenge : ROUND_LENGTH.normal;
   state.roundLength = length;
-  state.roundFacts = pickFactsForRound(state.facts, SAVE.factStats, length);
+  // Fases normais: tabuada completa (1 a 10), cada fato uma única vez, em ordem sorteada a cada rodada.
+  // Fase challenge: mantém a seleção adaptativa (foca nos fatos que a criança mais erra).
+  state.roundFacts = phase.table === "challenge"
+    ? pickFactsForRound(state.facts, SAVE.factStats, length)
+    : shuffle(state.facts);
   state.index = 0;
   state.score = 0;
   state.combo = 0;

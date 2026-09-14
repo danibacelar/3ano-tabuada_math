@@ -124,7 +124,7 @@ const PHASES = [
   }
 ];
 
-const ROUND_LENGTH = { normal: 8, challenge: 10 };
+const ROUND_LENGTH = { normal: 10, challenge: 10 };
 const SAVE_KEY = "tabuadaAdventureSave_v1";
 
 /* ---------- 2. FRASES DE FEEDBACK ---------------------------------------- */
