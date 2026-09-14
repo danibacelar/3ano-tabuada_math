@@ -192,6 +192,13 @@ function startRound(phase) {
   $("#play-bg").style.background = `linear-gradient(160deg, ${phase.bg[0]}, ${phase.bg[1]})`;
   $("#hud-score").textContent = "⭐ 0";
   $("#hud-combo").textContent = "";
+  const hint = $("#play-hint");
+  if (phase.dragHint) {
+    hint.textContent = phase.dragHint;
+    hint.hidden = false;
+  } else {
+    hint.hidden = true;
+  }
   renderProgressDots();
   showScreen("screen-play");
   nextQuestion();
