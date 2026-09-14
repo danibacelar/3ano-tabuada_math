@@ -535,16 +535,19 @@ button {
 .shape-crystal { border-radius: 30% 30% 50% 50%; box-shadow: 0 0 22px rgba(199,125,255,0.7), 0 8px 16px rgba(0,0,0,0.3); }
 
 /* motion: rise (balões sobem) */
+/* --rise-y0/--rise-y1 vêm do JS em px, calculados a partir da altura real
+   do campo de jogo, para o balão já nascer visível em vez de percorrer
+   uma distância baseada na tela toda (vh) até aparecer. */
 .motion-rise { animation-name: riseMotion; animation-timing-function: linear; animation-iteration-count: infinite; }
 @keyframes riseMotion {
-  0% { transform: translateY(30vh); }
-  100% { transform: translateY(-70vh); }
+  0% { transform: translateY(var(--rise-y0, 30vh)); }
+  100% { transform: translateY(var(--rise-y1, -70vh)); }
 }
 /* motion: fall / fallFast (neve, cristais) */
 .motion-fall, .motion-fallFast { animation-name: fallMotion; animation-timing-function: linear; animation-iteration-count: infinite; }
 @keyframes fallMotion {
-  0% { transform: translateY(-40vh); }
-  100% { transform: translateY(55vh); }
+  0% { transform: translateY(var(--fall-y0, -40vh)); }
+  100% { transform: translateY(var(--fall-y1, 55vh)); }
 }
 /* motion: bob (cogumelos, joias) */
 .motion-bob { animation-name: bobMotion; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }

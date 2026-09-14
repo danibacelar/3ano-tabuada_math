@@ -261,22 +261,52 @@ function lighten(hex) {
   } catch (e) { return "#fff"; }
 }
 
+// Tamanho do item precisa bater com o CSS (.item / @media max-width:640px)
+// para o cálculo de posição em px não deixar nada vazando da tela.
+function currentItemSize() {
+  return window.matchMedia("(max-width: 640px)").matches ? 76 : 96;
+}
+
+// Converte uma posição horizontal "central" em % para um left em px,
+// já centralizando o item nesse ponto e garantindo que ele não passe
+// das bordas do campo de jogo (o antigo cálculo só em % jogava os itens
+// das pontas para fora da tela em telas estreitas de celular).
+function clampedLeftPx(centerPct, containerWidth, itemPx) {
+  const margin = 6;
+  const left = (containerWidth * centerPct / 100) - itemPx / 2;
+  const maxLeft = Math.max(margin, containerWidth - itemPx - margin);
+  return Math.min(Math.max(left, margin), maxLeft);
+}
+
 function positionItem(item, motion, i, n, rect) {
   const colW = 100 / n;
   const jitter = (Math.random() - 0.5) * (colW * 0.4);
   const leftPct = colW * i + colW / 2 + jitter;
   const w = Math.max(rect.width, 300);
   const h = Math.max(rect.height, 320);
+  const itemPx = currentItemSize();
+  const leftPx = clampedLeftPx(leftPct, w, itemPx);
 
   if (motion === "rise" || motion === "fall" || motion === "fallFast") {
-    item.style.left = leftPct + "%";
+    item.style.left = leftPx + "px";
     item.style.top = "0";
-    const duration = motion === "fallFast" ? (3.2 + Math.random() * 1.2) : (6 + Math.random() * 2.5);
+    const duration = motion === "fallFast" ? (3.2 + Math.random() * 1.2) : (4.5 + Math.random() * 2);
     item.style.animationDuration = duration.toFixed(2) + "s";
     item.style.animationDelay = (Math.random() * -duration).toFixed(2) + "s";
+    if (motion === "rise") {
+      // Nasce já dentro da área visível (perto da base) e sobe até sumir
+      // por cima — antes usava vh cheio da tela, então em campos de jogo
+      // mais baixos que a viewport o balão passava boa parte do tempo
+      // fora da área visível antes de "aparecer".
+      item.style.setProperty("--rise-y0", (h * 0.55) + "px");
+      item.style.setProperty("--rise-y1", (-(itemPx + 30)) + "px");
+    } else {
+      item.style.setProperty("--fall-y0", (-(itemPx + 20)) + "px");
+      item.style.setProperty("--fall-y1", (h * 0.7) + "px");
+    }
   } else if (motion === "bob" || motion === "sway" || motion === "static") {
     const top = 18 + Math.random() * 55;
-    item.style.left = leftPct + "%";
+    item.style.left = leftPx + "px";
     item.style.top = top + "%";
     item.style.animationDuration = (1.6 + Math.random() * 1.2).toFixed(2) + "s";
     item.style.animationDelay = (Math.random() * -2).toFixed(2) + "s";
@@ -290,18 +320,19 @@ function positionItem(item, motion, i, n, rect) {
     item.style.animationDuration = (4.5 + Math.random() * 2).toFixed(2) + "s";
     item.style.animationDelay = (Math.random() * -3).toFixed(2) + "s";
   } else if (motion === "flutter" || motion === "flutterSlow") {
-    item.style.left = leftPct + "%";
+    item.style.left = leftPx + "px";
     item.style.top = (20 + Math.random() * 50) + "%";
     item.style.transitionDuration = (motion === "flutterSlow" ? 2.2 : 1.5) + "s";
   }
 }
 
 function startFlutter(item, rect, interval) {
+  const itemPx = currentItemSize();
   const move = () => {
     if (!document.body.contains(item)) return;
-    const left = 8 + Math.random() * 78;
+    const leftPct = 8 + Math.random() * 78;
     const top = 14 + Math.random() * 62;
-    item.style.left = left + "%";
+    item.style.left = clampedLeftPx(leftPct, Math.max(rect.width, 300), itemPx) + "px";
     item.style.top = top + "%";
   };
   move();
