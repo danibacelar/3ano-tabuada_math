@@ -300,14 +300,21 @@ function spawnDragRound(question, phase, field, rect) {
   });
 
   const mover = document.createElement("div");
-  mover.className = `item item-mover shape-${phase.shape}`;
-  const moverColor = phase.palette[0];
-  mover.style.background = `radial-gradient(circle at 32% 28%, ${lighten(moverColor)}, ${moverColor} 75%)`;
+  mover.className = `item item-mover shape-${phase.shape}` + (phase.moverBare ? " mover-bare" : "");
+  const moverPx = phase.moverBare ? Math.round(itemPx * 1.7) : itemPx;
+  mover.style.width = moverPx + "px";
+  mover.style.height = moverPx + "px";
+  if (phase.moverBare) {
+    mover.style.fontSize = Math.round(moverPx * 0.8) + "px";
+  } else {
+    const moverColor = phase.palette[0];
+    mover.style.background = `radial-gradient(circle at 32% 28%, ${lighten(moverColor)}, ${moverColor} 75%)`;
+    mover.style.fontSize = "34px";
+  }
   mover.textContent = phase.icon;
-  mover.style.fontSize = "34px";
 
-  const homeLeft = clamp(w / 2 - itemPx / 2, 6, w - itemPx - 6);
-  const homeTop = clamp(h - itemPx - 26, 6, h - itemPx - 6);
+  const homeLeft = clamp(w / 2 - moverPx / 2, 6, w - moverPx - 6);
+  const homeTop = clamp(h - moverPx - 26, 6, h - moverPx - 6);
   mover.style.left = homeLeft + "px";
   mover.style.top = homeTop + "px";
   field.appendChild(mover);

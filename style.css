@@ -541,6 +541,25 @@ button {
   50% { box-shadow: 0 10px 24px rgba(0,0,0,0.32), inset 0 -6px 10px rgba(0,0,0,0.12), inset 0 6px 10px rgba(255,255,255,0.5), 0 0 0 6px rgba(255,255,255,0.25); }
 }
 
+/* mover "sem balão" — só o bichinho, sem fundo/borda/sombra circular */
+.item-mover.mover-bare {
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  text-shadow: 0 6px 8px rgba(0,0,0,0.25);
+  animation: moverBareBob 1.4s ease-in-out infinite;
+}
+.item-mover.mover-bare.dragging {
+  animation: none;
+  box-shadow: none;
+  transform: scale(1.15);
+}
+@keyframes moverBareBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
 /* shape flourishes */
 .shape-balloon::after {
   content: ""; position: absolute; bottom: -22px; left: 50%;
