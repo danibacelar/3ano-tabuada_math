@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Aventura da Tabuada</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- TELA INICIAL -->
+  <section id="screen-home" class="screen active">
+    <div class="home-emblem">🗺️✨</div>
+    <h1 class="home-title">Aventura da Tabuada</h1>
+    <p class="home-subtitle">Explore o mapa, desbrave novas áreas e vire mestre da multiplicação — do 1 ao 10!</p>
+    <div class="home-actions">
+      <button id="btn-start" class="btn-primary">Começar Aventura</button>
+    </div>
+    <a id="home-reset-link" class="home-reset-link" style="display:none;">Reiniciar progresso</a>
+  </section>
+
+  <!-- MAPA -->
+  <section id="screen-map" class="screen">
+    <div class="map-wrap">
+      <img class="map-bg" src="assets/map.jpg" alt="Mapa da aventura">
+      <svg class="map-path-svg" id="map-path-svg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+      <div class="map-topbar">
+        <div class="map-title">Escolha uma área</div>
+        <div class="map-total-stars" id="total-stars-label">⭐ 0 / 33</div>
+      </div>
+      <div class="map-nodes" id="map-nodes"></div>
+      <div class="round-toast" id="round-toast"></div>
+      <div class="locked-toast" id="locked-toast"></div>
+      <div class="map-footer">
+        <button class="map-reset-link" id="map-reset-link">Reiniciar progresso</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTRO DA FASE -->
+  <section id="screen-intro" class="screen">
+    <div class="intro-card">
+      <div class="intro-icon" id="intro-icon">🎈</div>
+      <h2 class="intro-name" id="intro-name">Fase</h2>
+      <div class="intro-subtitle" id="intro-subtitle">Tabuada do 1</div>
+      <div class="intro-demo" id="intro-demo"></div>
+      <div class="intro-mechanic" id="intro-mechanic">Estoure o balão certo!</div>
+      <div class="intro-stars" id="intro-stars">☆☆☆</div>
+      <div class="intro-actions">
+        <button id="btn-play" class="btn-primary">Jogar!</button>
+        <button id="btn-intro-back" class="btn-map-back">Voltar ao mapa</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TELA DE JOGO -->
+  <section id="screen-play" class="screen">
+    <div class="play-bg" id="play-bg"></div>
+    <div class="hud">
+      <button class="hud-btn" id="btn-quit">🗺️ Mapa</button>
+      <div class="hud-question" id="hud-question">? × ? = ?</div>
+      <div class="hud-right">
+        <div class="hud-score" id="hud-score">⭐ 0</div>
+        <div class="hud-combo" id="hud-combo"></div>
+      </div>
+    </div>
+    <div class="progress-dots" id="progress-dots"></div>
+    <div class="play-field" id="play-field">
+      <div class="retry-toast" id="retry-toast"></div>
+      <div class="praise-toast" id="praise-toast"></div>
+      <div class="combo-toast" id="combo-toast"></div>
+    </div>
+  </section>
+
+
+</div>
+
+<div id="modal-root"></div>
+
+<script src="data.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

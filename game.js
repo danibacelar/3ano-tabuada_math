@@ -1,0 +1,518 @@
+/* ==========================================================================
+   GAME.JS — Motor do jogo
+   Controla as telas (início, mapa, intro de fase, jogo, resultado),
+   a renderização dos mini-games e a integração com data.js
+   ========================================================================== */
+
+let SAVE = loadSave();
+
+let state = {
+  phase: null,
+  facts: [],
+  index: 0,
+  question: null,
+  score: 0,
+  combo: 0,
+  bestComboRound: 0,
+  correctFirstTry: 0,
+  mistakes: 0,
+  hadMistakeThisQuestion: false,
+  flutterTimers: []
+};
+
+/* ---------------------------------------------------------------------- */
+/* UTIL                                                                    */
+/* ---------------------------------------------------------------------- */
+function $(sel) { return document.querySelector(sel); }
+function $all(sel) { return Array.from(document.querySelectorAll(sel)); }
+function showScreen(id) {
+  $all(".screen").forEach(s => s.classList.remove("active"));
+  $("#" + id).classList.add("active");
+}
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function totalStars() {
+  return PHASES.reduce((sum, p) => sum + (SAVE.phaseStars[p.id] || 0), 0);
+}
+
+/* ---------------------------------------------------------------------- */
+/* HOME SCREEN                                                             */
+/* ---------------------------------------------------------------------- */
+function renderHome() {
+  const hasProgress = SAVE.unlockedPhases.length > 1 || totalStars() > 0;
+  $("#btn-start").textContent = hasProgress ? "Continuar Jornada" : "Começar Aventura";
+  $("#home-reset-link").style.display = hasProgress ? "inline-block" : "none";
+  showScreen("screen-home");
+}
+
+/* ---------------------------------------------------------------------- */
+/* MAP SCREEN                                                              */
+/* ---------------------------------------------------------------------- */
+let justUnlockedId = null;
+
+function renderMapPaths() {
+  const svg = $("#map-path-svg");
+  const NS = "http://www.w3.org/2000/svg";
+  svg.innerHTML = "";
+  for (let i = 0; i < PHASES.length - 1; i++) {
+    const from = PHASES[i], to = PHASES[i + 1];
+    const open = SAVE.unlockedPhases.includes(to.id);
+    const isNew = to.id === justUnlockedId;
+    const line = document.createElementNS(NS, "line");
+    line.setAttribute("x1", from.mapPos.left);
+    line.setAttribute("y1", from.mapPos.top);
+    line.setAttribute("x2", to.mapPos.left);
+    line.setAttribute("y2", to.mapPos.top);
+    line.setAttribute("class", "map-path-segment " + (open ? "map-path-open" : "map-path-locked") + (isNew ? " map-path-new" : ""));
+    svg.appendChild(line);
+  }
+}
+
+function renderMap() {
+  renderMapPaths();
+  const container = $("#map-nodes");
+  container.innerHTML = "";
+  PHASES.forEach(phase => {
+    const unlocked = SAVE.unlockedPhases.includes(phase.id);
+    const stars = SAVE.phaseStars[phase.id] || 0;
+
+    const node = document.createElement("button");
+    node.className = "map-node" + (unlocked ? "" : " locked") + (phase.id === justUnlockedId ? " unlocked-new" : "");
+    node.style.left = phase.mapPos.left + "%";
+    node.style.top = phase.mapPos.top + "%";
+
+    const circle = document.createElement("div");
+    circle.className = "node-circle";
+    circle.textContent = unlocked ? (phase.table === "challenge" ? "⭐" : phase.id) : "🔒";
+    if (phase.id === justUnlockedId) {
+      const pulse = document.createElement("div");
+      pulse.className = "node-pulse";
+      circle.appendChild(pulse);
+    }
+    node.appendChild(circle);
+
+    const label = document.createElement("div");
+    label.className = "node-label";
+    label.textContent = phase.table === "challenge" ? "Challenge" : "Fase " + phase.id;
+    node.appendChild(label);
+
+    if (unlocked) {
+      const starsRow = document.createElement("div");
+      starsRow.className = "node-stars";
+      for (let i = 1; i <= 3; i++) {
+        const s = document.createElement("span");
+        s.textContent = "⭐";
+        if (i > stars) s.classList.add("node-star-empty");
+        starsRow.appendChild(s);
+      }
+      node.appendChild(starsRow);
+    }
+
+    node.addEventListener("click", () => {
+      if (!unlocked) {
+        showLockedToast();
+        node.classList.add("shake");
+        setTimeout(() => node.classList.remove("shake"), 400);
+        return;
+      }
+      openIntro(phase);
+    });
+
+    container.appendChild(node);
+  });
+
+  $("#total-stars-label").textContent = "⭐ " + totalStars() + " / 33";
+  showScreen("screen-map");
+  justUnlockedId = null;
+
+  if (lastRoundSummary) {
+    showRoundSummaryToast(lastRoundSummary);
+    lastRoundSummary = null;
+  }
+}
+
+let lockedToastTimer = null;
+function showLockedToast() {
+  const toast = $("#locked-toast");
+  const msgs = ["Ainda trancada! Complete a fase anterior primeiro. 🔒", "Continue a aventura para destrancar aqui! 🗺️"];
+  toast.textContent = pick(msgs);
+  toast.classList.add("show");
+  clearTimeout(lockedToastTimer);
+  lockedToastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+}
+
+/* ---------------------------------------------------------------------- */
+/* INTRO OVERLAY                                                           */
+/* ---------------------------------------------------------------------- */
+let introPhase = null;
+function openIntro(phase) {
+  introPhase = phase;
+  $("#intro-icon").textContent = phase.icon;
+  $("#intro-name").textContent = phase.name;
+  $("#intro-subtitle").textContent = phase.subtitle;
+  $("#intro-mechanic").textContent = phase.mechanicLabel;
+  const stars = SAVE.phaseStars[phase.id] || 0;
+  $("#intro-stars").textContent = "⭐".repeat(stars) + "☆".repeat(3 - stars);
+  renderIntroDemo(phase);
+  showScreen("screen-intro");
+}
+
+function renderIntroDemo(phase) {
+  const demo = $("#intro-demo");
+  demo.innerHTML = "";
+  demo.style.background = `linear-gradient(160deg, ${phase.bg[0]}, ${phase.bg[1]})`;
+  const item = document.createElement("div");
+  item.className = `intro-demo-item shape-${phase.shape}`;
+  const color = phase.palette[0];
+  item.style.background = `radial-gradient(circle at 32% 28%, ${lighten(color)}, ${color} 75%)`;
+  item.textContent = phase.icon;
+  demo.appendChild(item);
+}
+
+/* ---------------------------------------------------------------------- */
+/* PLAY SCREEN — RODADA                                                    */
+/* ---------------------------------------------------------------------- */
+function startRound(phase) {
+  clearFlutterTimers();
+  state.phase = phase;
+  state.facts = factsForPhase(phase);
+  const length = phase.table === "challenge" ? ROUND_LENGTH.challenge : ROUND_LENGTH.normal;
+  state.roundLength = length;
+  state.roundFacts = pickFactsForRound(state.facts, SAVE.factStats, length);
+  state.index = 0;
+  state.score = 0;
+  state.combo = 0;
+  state.bestComboRound = 0;
+  state.correctFirstTry = 0;
+  state.mistakes = 0;
+
+  $("#play-bg").style.background = `linear-gradient(160deg, ${phase.bg[0]}, ${phase.bg[1]})`;
+  $("#hud-score").textContent = "⭐ 0";
+  $("#hud-combo").textContent = "";
+  renderProgressDots();
+  showScreen("screen-play");
+  nextQuestion();
+}
+
+function renderProgressDots() {
+  const wrap = $("#progress-dots");
+  wrap.innerHTML = "";
+  for (let i = 0; i < state.roundLength; i++) {
+    const dot = document.createElement("div");
+    dot.className = "progress-dot" + (i < state.index ? " done" : "") + (i === state.index ? " current" : "");
+    wrap.appendChild(dot);
+  }
+}
+
+function nextQuestion() {
+  if (state.index >= state.roundLength) { endRound(); return; }
+  clearFlutterTimers();
+  state.hadMistakeThisQuestion = false;
+  const fact = state.roundFacts[state.index];
+  state.question = buildQuestion(fact, state.phase);
+  $("#hud-question").textContent = `${state.question.a} × ${state.question.b} = ?`;
+  renderProgressDots();
+  spawnItems(state.question, state.phase);
+}
+
+/* ------------------------- Renderização dos itens ----------------------- */
+function spawnItems(question, phase) {
+  const field = $("#play-field");
+  field.querySelectorAll(".item").forEach(el => el.remove());
+  const rect = field.getBoundingClientRect();
+  const n = question.options.length;
+
+  question.options.forEach((value, i) => {
+    const item = document.createElement("div");
+    item.className = `item shape-${phase.shape} motion-${phase.motion}`;
+    item.dataset.value = value;
+    const color = phase.palette[i % phase.palette.length];
+    item.style.background = `radial-gradient(circle at 32% 28%, ${lighten(color)}, ${color} 75%)`;
+
+    const badge = document.createElement("span");
+    badge.className = "item-badge";
+    badge.textContent = phase.icon;
+    item.appendChild(badge);
+
+    const label = document.createElement("span");
+    label.textContent = value;
+    item.appendChild(label);
+
+    positionItem(item, phase.motion, i, n, rect);
+    item.addEventListener("click", () => handleAnswer(item, value, question.correct));
+    field.appendChild(item);
+
+    if (phase.motion === "flutter" || phase.motion === "flutterSlow") {
+      startFlutter(item, rect, phase.motion === "flutterSlow" ? 2600 : 1800);
+    }
+  });
+}
+
+function lighten(hex) {
+  try {
+    const c = hex.replace("#", "");
+    const r = Math.min(255, parseInt(c.substr(0, 2), 16) + 60);
+    const g = Math.min(255, parseInt(c.substr(2, 2), 16) + 60);
+    const b = Math.min(255, parseInt(c.substr(4, 2), 16) + 60);
+    return `rgb(${r},${g},${b})`;
+  } catch (e) { return "#fff"; }
+}
+
+function positionItem(item, motion, i, n, rect) {
+  const colW = 100 / n;
+  const jitter = (Math.random() - 0.5) * (colW * 0.4);
+  const leftPct = colW * i + colW / 2 + jitter;
+  const w = Math.max(rect.width, 300);
+  const h = Math.max(rect.height, 320);
+
+  if (motion === "rise" || motion === "fall" || motion === "fallFast") {
+    item.style.left = leftPct + "%";
+    item.style.top = "0";
+    const duration = motion === "fallFast" ? (3.2 + Math.random() * 1.2) : (6 + Math.random() * 2.5);
+    item.style.animationDuration = duration.toFixed(2) + "s";
+    item.style.animationDelay = (Math.random() * -duration).toFixed(2) + "s";
+  } else if (motion === "bob" || motion === "sway" || motion === "static") {
+    const top = 18 + Math.random() * 55;
+    item.style.left = leftPct + "%";
+    item.style.top = top + "%";
+    item.style.animationDuration = (1.6 + Math.random() * 1.2).toFixed(2) + "s";
+    item.style.animationDelay = (Math.random() * -2).toFixed(2) + "s";
+  } else if (motion === "swim") {
+    const top = 15 + (i * (65 / Math.max(1, n - 1 || 1))) + Math.random() * 6;
+    const fromLeft = i % 2 === 0;
+    item.style.top = top + "%";
+    item.style.left = fromLeft ? "-6%" : "auto";
+    item.style.right = fromLeft ? "auto" : "-6%";
+    item.style.setProperty("--swim-dist", (w * 0.88 * (fromLeft ? 1 : -1)) + "px");
+    item.style.animationDuration = (4.5 + Math.random() * 2).toFixed(2) + "s";
+    item.style.animationDelay = (Math.random() * -3).toFixed(2) + "s";
+  } else if (motion === "flutter" || motion === "flutterSlow") {
+    item.style.left = leftPct + "%";
+    item.style.top = (20 + Math.random() * 50) + "%";
+    item.style.transitionDuration = (motion === "flutterSlow" ? 2.2 : 1.5) + "s";
+  }
+}
+
+function startFlutter(item, rect, interval) {
+  const move = () => {
+    if (!document.body.contains(item)) return;
+    const left = 8 + Math.random() * 78;
+    const top = 14 + Math.random() * 62;
+    item.style.left = left + "%";
+    item.style.top = top + "%";
+  };
+  move();
+  const t = setInterval(move, interval);
+  state.flutterTimers.push(t);
+}
+
+function clearFlutterTimers() {
+  state.flutterTimers.forEach(t => clearInterval(t));
+  state.flutterTimers = [];
+}
+
+/* ------------------------- Resposta -------------------------------------- */
+function handleAnswer(itemEl, value, correct) {
+  if (itemEl.classList.contains("wrong-disabled") || itemEl.dataset.locked) return;
+
+  if (value === correct) {
+    itemEl.dataset.locked = "1";
+    const points = state.hadMistakeThisQuestion ? 5 : 10;
+    state.score += points;
+    if (!state.hadMistakeThisQuestion) {
+      state.correctFirstTry++;
+      state.combo++;
+      registerFactResult(SAVE, state.question.key, true);
+    } else {
+      state.combo = 0;
+    }
+    state.bestComboRound = Math.max(state.bestComboRound, state.combo);
+
+    itemEl.classList.add("correct-pop");
+    showScorePopup(itemEl, points);
+    showPraise();
+    maybeShowCombo();
+    $("#hud-score").textContent = "⭐ " + state.score;
+
+    clearFlutterTimers();
+    setTimeout(() => {
+      state.index++;
+      nextQuestion();
+    }, 620);
+  } else {
+    if (!state.hadMistakeThisQuestion) {
+      state.hadMistakeThisQuestion = true;
+      state.mistakes++;
+      state.combo = 0;
+      registerFactResult(SAVE, state.question.key, false);
+      $("#hud-combo").textContent = "";
+    }
+    itemEl.classList.add("shake", "wrong-disabled");
+    setTimeout(() => itemEl.classList.remove("shake"), 400);
+    showRetry();
+  }
+}
+
+let praiseTimer = null;
+function showPraise() {
+  const el = $("#praise-toast");
+  el.textContent = pick(PRAISE_MESSAGES);
+  el.classList.add("show");
+  clearTimeout(praiseTimer);
+  praiseTimer = setTimeout(() => el.classList.remove("show"), 700);
+}
+let retryTimer = null;
+function showRetry() {
+  const el = $("#retry-toast");
+  el.textContent = pick(RETRY_MESSAGES);
+  el.classList.add("show");
+  clearTimeout(retryTimer);
+  retryTimer = setTimeout(() => el.classList.remove("show"), 800);
+}
+function maybeShowCombo() {
+  let msg = null;
+  if (COMBO_MESSAGES[state.combo]) msg = COMBO_MESSAGES[state.combo];
+  else if (state.combo > 8 && state.combo % 4 === 0) msg = COMBO_MESSAGES[8];
+  $("#hud-combo").textContent = state.combo >= 2 ? `combo x${state.combo}` : "";
+  if (msg) {
+    const el = $("#combo-toast");
+    el.textContent = msg;
+    el.classList.remove("show");
+    void el.offsetWidth;
+    el.classList.add("show");
+  }
+}
+
+function showScorePopup(sourceEl, points) {
+  const popup = document.createElement("div");
+  popup.className = "score-popup";
+  popup.textContent = `+${points} ⭐`;
+  document.body.appendChild(popup);
+  const sourceRect = sourceEl.getBoundingClientRect();
+  const targetRect = $("#hud-score").getBoundingClientRect();
+  popup.style.left = (sourceRect.left + sourceRect.width / 2 - 20) + "px";
+  popup.style.top = sourceRect.top + "px";
+  popup.style.opacity = "1";
+  requestAnimationFrame(() => {
+    popup.style.transform = `translate(${targetRect.left - sourceRect.left}px, ${targetRect.top - sourceRect.top}px) scale(0.5)`;
+    popup.style.opacity = "0";
+  });
+  setTimeout(() => popup.remove(), 720);
+}
+
+/* ---------------------------------------------------------------------- */
+/* FIM DE RODADA — vai direto pro mapa, sem tela intermediária             */
+/* ---------------------------------------------------------------------- */
+let lastRoundSummary = null;
+
+function endRound() {
+  clearFlutterTimers();
+  const phase = state.phase;
+  const stars = starsForResult(state.correctFirstTry, state.roundLength);
+  const prevStars = SAVE.phaseStars[phase.id] || 0;
+  const improvedStars = Math.max(prevStars, stars);
+  SAVE.phaseStars[phase.id] = improvedStars;
+  SAVE.phaseBestScore[phase.id] = Math.max(SAVE.phaseBestScore[phase.id] || 0, state.score);
+  SAVE.phaseBestCombo[phase.id] = Math.max(SAVE.phaseBestCombo[phase.id] || 0, state.bestComboRound);
+  SAVE.bestComboOverall = Math.max(SAVE.bestComboOverall, state.bestComboRound);
+
+  let unlockedPhaseObj = null;
+  const idx = PHASES.findIndex(p => p.id === phase.id);
+  if (idx >= 0 && idx < PHASES.length - 1) {
+    const nextPhase = PHASES[idx + 1];
+    if (!SAVE.unlockedPhases.includes(nextPhase.id)) {
+      SAVE.unlockedPhases.push(nextPhase.id);
+      unlockedPhaseObj = nextPhase;
+      justUnlockedId = nextPhase.id;
+    }
+  }
+
+  writeSave(SAVE);
+
+  lastRoundSummary = {
+    stars, points: state.score,
+    unlockedPhaseName: unlockedPhaseObj ? unlockedPhaseObj.name : null
+  };
+  renderMap();
+}
+
+let roundToastTimer = null;
+function showRoundSummaryToast(summary) {
+  const el = $("#round-toast");
+  const starsStr = "⭐".repeat(summary.stars) + "☆".repeat(3 - summary.stars);
+  let html = `<span class="round-toast-stars">${starsStr}</span><span class="round-toast-points">+${summary.points} pontos</span>`;
+  if (summary.unlockedPhaseName) {
+    html += `<span class="round-toast-unlock">✨ Nova área desbloqueada: ${summary.unlockedPhaseName}!</span>`;
+  }
+  el.innerHTML = html;
+  el.classList.remove("show");
+  void el.offsetWidth;
+  el.classList.add("show");
+  clearTimeout(roundToastTimer);
+  roundToastTimer = setTimeout(() => el.classList.remove("show"), summary.unlockedPhaseName ? 3400 : 2400);
+}
+
+/* ---------------------------------------------------------------------- */
+/* RESET DE PROGRESSO (discreto, com dupla confirmação)                    */
+/* ---------------------------------------------------------------------- */
+function openResetModal() {
+  const root = $("#modal-root");
+  root.innerHTML = "";
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  overlay.innerHTML = `
+    <div class="modal-box">
+      <h3>Reiniciar progresso?</h3>
+      <p>Isso vai apagar todas as fases desbloqueadas, estrelas e pontuações salvas. Essa ação não pode ser desfeita.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="modal-cancel">Cancelar</button>
+        <button class="btn-danger" id="modal-confirm">Reiniciar</button>
+      </div>
+    </div>`;
+  root.appendChild(overlay);
+  $("#modal-cancel").addEventListener("click", () => { root.innerHTML = ""; });
+  $("#modal-confirm").addEventListener("click", () => confirmResetStep2());
+}
+function confirmResetStep2() {
+  const root = $("#modal-root");
+  root.innerHTML = "";
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  overlay.innerHTML = `
+    <div class="modal-box">
+      <h3>Tem certeza mesmo?</h3>
+      <p>Última confirmação: todo o progresso será perdido para sempre.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="modal-cancel2">Cancelar</button>
+        <button class="btn-danger" id="modal-confirm2">Sim, apagar tudo</button>
+      </div>
+    </div>`;
+  root.appendChild(overlay);
+  $("#modal-cancel2").addEventListener("click", () => { root.innerHTML = ""; });
+  $("#modal-confirm2").addEventListener("click", () => {
+    SAVE = resetSave();
+    root.innerHTML = "";
+    renderHome();
+  });
+}
+
+/* ---------------------------------------------------------------------- */
+/* EVENTOS GERAIS                                                          */
+/* ---------------------------------------------------------------------- */
+window.addEventListener("DOMContentLoaded", () => {
+  renderHome();
+
+  $("#btn-start").addEventListener("click", renderMap);
+  $("#home-reset-link").addEventListener("click", openResetModal);
+  $("#map-reset-link").addEventListener("click", openResetModal);
+
+  $("#btn-play").addEventListener("click", () => startRound(introPhase));
+  $("#btn-intro-back").addEventListener("click", renderMap);
+
+  $("#btn-quit").addEventListener("click", () => { clearFlutterTimers(); renderMap(); });
+
+  window.addEventListener("resize", () => {
+    if ($("#screen-play").classList.contains("active") && state.question) {
+      spawnItems(state.question, state.phase);
+    }
+  });
+});
