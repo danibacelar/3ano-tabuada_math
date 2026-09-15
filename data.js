@@ -40,7 +40,7 @@ const PHASES = [
     subtitle: "Tabuada do 3",
     mapPos: { left: 30.2, top: 41.9 },
     motion: "flutter", shape: "butterfly", icon: "🦋",
-    interaction: "drag", targetIcon: "🌸",
+    interaction: "drag", moverBare: true, treeDecor: true, targetStyle: "flower",
     palette: ["#B983FF", "#FF9F9F", "#5AC8FA", "#FF7EB6"],
     bg: ["#FDE2E4", "#DCEEDD"],
     mechanicLabel: "Arraste a borboleta até a flor certa!"

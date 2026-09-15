@@ -575,6 +575,70 @@ button {
   50% { transform: translateY(-8px); }
 }
 
+/* Alvo em forma de flor (fase 3) — o número fica num selinho no meio
+   da flor, em vez de dentro de uma bolinha colorida. */
+.item-target.target-flower {
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+.target-flower-emoji {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  filter: drop-shadow(0 6px 8px rgba(0,0,0,0.2));
+}
+.target-flower-number {
+  position: relative;
+  z-index: 1;
+  background: rgba(255,255,255,0.94);
+  color: var(--ink);
+  font-family: "Baloo 2", sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  padding: 3px 11px;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  text-shadow: none;
+}
+
+/* Árvore florida de fundo (fase 3) — só decoração, atrás dos itens. */
+.tree-scene {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.tree-trunk {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 12%;
+  height: 34%;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #B08461, #6D4C33);
+  border-radius: 20px 20px 6px 6px;
+  box-shadow: inset -8px 0 12px rgba(0,0,0,0.2);
+}
+.tree-canopy {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #A8D97A, #6FA84A 72%);
+  box-shadow: inset -12px -14px 24px rgba(0,0,0,0.12);
+}
+.tree-canopy-a { left: 6%;  top: 2%;  width: 58%; height: 58%; }
+.tree-canopy-b { left: 38%; top: -4%; width: 60%; height: 60%; }
+.tree-canopy-c { left: 20%; top: 16%; width: 58%; height: 48%; }
+.tree-flower-deco {
+  position: absolute;
+  font-size: 22px;
+  opacity: 0.92;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.15));
+}
+
 /* shape flourishes */
 .shape-balloon::after {
   content: ""; position: absolute; bottom: -22px; left: 50%;

@@ -190,6 +190,7 @@ function startRound(phase) {
   state.mistakes = 0;
 
   $("#play-bg").style.background = `linear-gradient(160deg, ${phase.bg[0]}, ${phase.bg[1]})`;
+  renderPlayDecor(phase);
   $("#hud-score").textContent = "⭐ 0";
   $("#hud-combo").textContent = "";
   const hint = $("#play-hint");
@@ -202,6 +203,39 @@ function startRound(phase) {
   renderProgressDots();
   showScreen("screen-play");
   nextQuestion();
+}
+
+// Cenário decorativo por fase (ex.: a árvore florida da fase 3). Roda uma
+// vez por rodada — os alvos/mensageiro é que trocam a cada pergunta.
+function renderPlayDecor(phase) {
+  const field = $("#play-field");
+  field.querySelectorAll(".tree-scene").forEach(el => el.remove());
+  if (!phase.treeDecor) return;
+
+  const tree = document.createElement("div");
+  tree.className = "tree-scene";
+  tree.innerHTML =
+    '<div class="tree-trunk"></div>' +
+    '<div class="tree-canopy tree-canopy-a"></div>' +
+    '<div class="tree-canopy tree-canopy-b"></div>' +
+    '<div class="tree-canopy tree-canopy-c"></div>';
+
+  const decoSpots = [
+    { l: 8, t: 6, r: -12 }, { l: 28, t: 2, r: 10 }, { l: 50, t: 4, r: -8 }, { l: 70, t: 8, r: 14 },
+    { l: 88, t: 16, r: -14 }, { l: 16, t: 26, r: 8 }, { l: 42, t: 22, r: -10 }, { l: 62, t: 28, r: 12 },
+    { l: 84, t: 34, r: -6 }, { l: 22, t: 46, r: 10 }, { l: 56, t: 40, r: -12 }, { l: 78, t: 48, r: 8 }
+  ];
+  decoSpots.forEach((spot, i) => {
+    const f = document.createElement("span");
+    f.className = "tree-flower-deco";
+    f.textContent = FLOWER_EMOJIS[i % FLOWER_EMOJIS.length];
+    f.style.left = spot.l + "%";
+    f.style.top = spot.t + "%";
+    f.style.transform = `rotate(${spot.r}deg)`;
+    tree.appendChild(f);
+  });
+
+  field.insertBefore(tree, field.firstChild);
 }
 
 function renderProgressDots() {
@@ -274,6 +308,13 @@ const DRAG_TARGET_GRID = [
   { left: 26, top: 32 }, { left: 74, top: 32 },
   { left: 26, top: 68 }, { left: 74, top: 68 }
 ];
+// Grade para fases com árvore de fundo (flores na copa) — mais alta e
+// espalhada, para as flores caírem dentro da copa desenhada em CSS.
+const TREE_TARGET_GRID = [
+  { left: 24, top: 18 }, { left: 76, top: 16 },
+  { left: 30, top: 44 }, { left: 72, top: 44 }
+];
+const FLOWER_EMOJIS = ["🌸", "🌺", "🌷", "💮"];
 
 function clamp(v, min, max) { return Math.min(Math.max(v, min), max); }
 
@@ -281,26 +322,46 @@ function spawnDragRound(question, phase, field, rect) {
   const w = Math.max(rect.width, 300);
   const h = Math.max(rect.height, 320);
   const itemPx = currentItemSize();
+  const isFlower = phase.targetStyle === "flower";
+  const targetPx = isFlower ? Math.round(itemPx * 1.55) : itemPx;
+  const grid = phase.treeDecor ? TREE_TARGET_GRID : DRAG_TARGET_GRID;
   const targets = [];
 
   question.options.forEach((value, i) => {
-    const spot = DRAG_TARGET_GRID[i % DRAG_TARGET_GRID.length];
+    const spot = grid[i % grid.length];
     const target = document.createElement("div");
-    target.className = `item item-target shape-target`;
     target.dataset.value = value;
-    const color = phase.palette[i % phase.palette.length];
-    target.style.background = `radial-gradient(circle at 32% 28%, ${lighten(color)}, ${color} 75%)`;
-    target.style.left = clampedLeftPx(spot.left, w, itemPx) + "px";
-    target.style.top = clamp((h * spot.top / 100) - itemPx / 2, 6, h - itemPx - 6) + "px";
+    target.style.width = targetPx + "px";
+    target.style.height = targetPx + "px";
+    target.style.left = clampedLeftPx(spot.left, w, targetPx) + "px";
+    target.style.top = clamp((h * spot.top / 100) - targetPx / 2, 6, h - targetPx - 6) + "px";
 
-    const badge = document.createElement("span");
-    badge.className = "item-badge";
-    badge.textContent = phase.targetIcon || "🎯";
-    target.appendChild(badge);
+    if (isFlower) {
+      target.className = "item item-target target-flower";
+      const emoji = document.createElement("span");
+      emoji.className = "target-flower-emoji";
+      emoji.textContent = FLOWER_EMOJIS[i % FLOWER_EMOJIS.length];
+      emoji.style.fontSize = Math.round(targetPx * 0.92) + "px";
+      target.appendChild(emoji);
 
-    const label = document.createElement("span");
-    label.textContent = value;
-    target.appendChild(label);
+      const number = document.createElement("span");
+      number.className = "target-flower-number";
+      number.textContent = value;
+      target.appendChild(number);
+    } else {
+      target.className = "item item-target shape-target";
+      const color = phase.palette[i % phase.palette.length];
+      target.style.background = `radial-gradient(circle at 32% 28%, ${lighten(color)}, ${color} 75%)`;
+
+      const badge = document.createElement("span");
+      badge.className = "item-badge";
+      badge.textContent = phase.targetIcon || "🎯";
+      target.appendChild(badge);
+
+      const label = document.createElement("span");
+      label.textContent = value;
+      target.appendChild(label);
+    }
 
     field.appendChild(target);
     targets.push(target);
