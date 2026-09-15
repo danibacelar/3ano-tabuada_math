@@ -314,7 +314,7 @@ const TREE_TARGET_GRID = [
   { left: 24, top: 18 }, { left: 76, top: 16 },
   { left: 30, top: 44 }, { left: 72, top: 44 }
 ];
-const FLOWER_EMOJIS = ["🌸", "🌺", "🌷", "💮"];
+const FLOWER_EMOJIS = ["🌸", "🌺", "🌷", "🌼"];
 
 function clamp(v, min, max) { return Math.min(Math.max(v, min), max); }
 
