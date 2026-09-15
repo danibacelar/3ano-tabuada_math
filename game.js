@@ -17,7 +17,8 @@ let state = {
   correctFirstTry: 0,
   mistakes: 0,
   hadMistakeThisQuestion: false,
-  flutterTimers: []
+  flutterTimers: [],
+  steerListener: null
 };
 
 /* ---------------------------------------------------------------------- */
@@ -311,8 +312,17 @@ function spawnItems(question, phase) {
   field.querySelectorAll(".item").forEach(el => el.remove());
   const rect = field.getBoundingClientRect();
 
+  if (state.steerListener) {
+    field.removeEventListener("pointermove", state.steerListener);
+    state.steerListener = null;
+  }
+
   if (phase.interaction === "drag") {
     spawnDragRound(question, phase, field, rect);
+    return;
+  }
+  if (phase.interaction === "steer") {
+    spawnSteerRound(question, phase, field, rect);
     return;
   }
 
@@ -558,6 +568,99 @@ function setupDragMover(mover, targets, homeLeft, homeTop, rect, correct) {
   mover.addEventListener("pointermove", onPointerMove);
   mover.addEventListener("pointerup", onPointerUp);
   mover.addEventListener("pointercancel", onPointerUp);
+}
+
+/* ------------------------- Mini-game de esqui (fase 7) -------------------
+   Usado por phase.interaction === "steer": o esquiador fica numa altura
+   fixa e segue o mouse (ou o dedo, arrastando no celular) só na horizontal.
+   As 4 bandeiras com os resultados ficam paradas mais acima na pista. Ao
+   guiar o esquiador até parar sobre uma bandeira por um instante, ela é
+   escolhida como resposta — igual acontece ao passar por uma errada, ela
+   fica desabilitada e o esquiador continua livre para ser guiado até a
+   certa. -------------------------------------------------------------- */
+const STEER_TARGET_SPOTS = [
+  { left: 14, top: 20 }, { left: 38, top: 16 },
+  { left: 62, top: 16 }, { left: 86, top: 20 }
+];
+const STEER_DWELL_MS = 420;
+
+function spawnSteerRound(question, phase, field, rect) {
+  const w = Math.max(rect.width, 300);
+  const h = Math.max(rect.height, 320);
+  const itemPx = currentItemSize();
+  const targets = [];
+
+  question.options.forEach((value, i) => {
+    const spot = STEER_TARGET_SPOTS[i % STEER_TARGET_SPOTS.length];
+    const target = document.createElement("div");
+    target.className = "item item-target shape-target";
+    target.dataset.value = value;
+    const color = phase.palette[i % phase.palette.length];
+    target.style.background = `radial-gradient(circle at 32% 28%, ${lighten(color)}, ${color} 75%)`;
+    target.style.left = clampedLeftPx(spot.left, w, itemPx) + "px";
+    target.style.top = clamp((h * spot.top / 100) - itemPx / 2, 6, h - itemPx - 6) + "px";
+
+    const badge = document.createElement("span");
+    badge.className = "item-badge";
+    badge.textContent = phase.targetIcon || "🚩";
+    target.appendChild(badge);
+
+    const label = document.createElement("span");
+    label.textContent = value;
+    target.appendChild(label);
+
+    field.appendChild(target);
+    targets.push(target);
+  });
+
+  const skierPx = Math.round(itemPx * 1.7);
+  const skier = document.createElement("div");
+  skier.className = `item item-mover mover-bare shape-${phase.shape}`;
+  skier.style.width = skierPx + "px";
+  skier.style.height = skierPx + "px";
+  skier.style.fontSize = Math.round(skierPx * 0.8) + "px";
+  skier.textContent = phase.icon;
+  skier.style.top = clamp(h * 0.7, 6, h - skierPx - 6) + "px";
+  skier.style.left = clamp(w / 2 - skierPx / 2, 6, w - skierPx - 6) + "px";
+  field.appendChild(skier);
+
+  let dwellTarget = null;
+  let dwellTimer = null;
+
+  function clearDwell() {
+    if (dwellTimer) { clearTimeout(dwellTimer); dwellTimer = null; }
+    dwellTarget = null;
+  }
+
+  function findOverlap(skierLeft) {
+    const skierCenter = skierLeft + skierPx / 2;
+    return targets.find(t => {
+      if (t.classList.contains("wrong-disabled") || t.dataset.locked) return false;
+      const left = parseFloat(t.style.left);
+      return skierCenter >= left && skierCenter <= left + itemPx;
+    });
+  }
+
+  function onMove(e) {
+    const left = clamp(e.clientX - rect.left - skierPx / 2, 0, Math.max(0, w - skierPx));
+    skier.style.left = left + "px";
+
+    const hit = findOverlap(left);
+    if (hit !== dwellTarget) {
+      clearDwell();
+      dwellTarget = hit || null;
+      if (hit) {
+        dwellTimer = setTimeout(() => {
+          handleAnswer(hit, Number(hit.dataset.value), question.correct);
+          clearDwell();
+        }, STEER_DWELL_MS);
+        state.flutterTimers.push(dwellTimer);
+      }
+    }
+  }
+
+  field.addEventListener("pointermove", onMove);
+  state.steerListener = onMove;
 }
 
 function lighten(hex) {
