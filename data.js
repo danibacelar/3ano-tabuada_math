@@ -104,10 +104,10 @@ const PHASES = [
     name: "Deserto Escaldante",
     subtitle: "Tabuada do 9",
     mapPos: { left: 73.0, top: 83.3 },
-    motion: "fall", shape: "chest", icon: "🏺",
+    motion: "fall", shape: "chest", icon: "🌵", optionVisual: "emoji",
     palette: ["#C9A227", "#E6B655", "#B08968", "#DDB892"],
     bg: ["#F4A261", "#F9DC8F"],
-    mechanicLabel: "Toque no pote certo!"
+    mechanicLabel: "Toque no cacto certo!"
   },
   {
     id: 10, table: 10,
