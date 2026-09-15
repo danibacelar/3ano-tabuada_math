@@ -612,7 +612,7 @@ function spawnSteerRound(question, phase, field, rect) {
 
   question.options.forEach((value, i) => {
     const target = document.createElement("div");
-    target.className = "item item-target shape-target";
+    target.className = "item item-target shape-target motion-fall";
     target.dataset.value = value;
     const color = phase.palette[i % phase.palette.length];
     target.style.background = `radial-gradient(circle at 32% 28%, ${lighten(color)}, ${color} 75%)`;

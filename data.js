@@ -94,20 +94,20 @@ const PHASES = [
     name: "Castelo Real",
     subtitle: "Tabuada do 8",
     mapPos: { left: 65.8, top: 61.2 },
-    motion: "sway", shape: "flag", icon: "🚩",
+    motion: "fall", shape: "flag", icon: "🚩",
     palette: ["#7209B7", "#3A0CA3", "#4361EE", "#F72585"],
     bg: ["#B8C0FF", "#E7ECFF"],
-    mechanicLabel: "Hasteie a bandeira certa!"
+    mechanicLabel: "Toque na bandeira certa!"
   },
   {
     id: 9, table: 9,
     name: "Deserto Escaldante",
     subtitle: "Tabuada do 9",
     mapPos: { left: 73.0, top: 83.3 },
-    motion: "static", shape: "chest", icon: "🏺",
+    motion: "fall", shape: "chest", icon: "🏺",
     palette: ["#C9A227", "#E6B655", "#B08968", "#DDB892"],
     bg: ["#F4A261", "#F9DC8F"],
-    mechanicLabel: "Desenterre o pote certo!"
+    mechanicLabel: "Toque no pote certo!"
   },
   {
     id: 10, table: 10,

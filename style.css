@@ -900,6 +900,7 @@ button {
   border-radius: 999px;
   z-index: 15;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.25s ease;
 }
 .retry-toast.show, .praise-toast.show { opacity: 1; }
