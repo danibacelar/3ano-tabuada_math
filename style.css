@@ -757,6 +757,62 @@ button {
   font-size: 34px; line-height: 1;
 }
 
+/* Vulcão grande (fase 10) — decoração atrás dos itens; a cratera
+   (.volcano-crater) é o alvo real onde o arraste é conferido em JS. */
+.volcano-scene {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 82%;
+  height: 60%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 0;
+}
+.volcano-body {
+  position: absolute;
+  inset: 0;
+  top: 8%;
+  background: linear-gradient(180deg, #6B4A3A 0%, #4A3226 55%, #2E1D15 100%);
+  clip-path: polygon(38% 0%, 62% 0%, 100% 100%, 0% 100%);
+  box-shadow: inset -24px -14px 30px rgba(0,0,0,0.4);
+}
+.volcano-body::before {
+  content: "";
+  position: absolute;
+  left: 50%; top: 0;
+  width: 16%; height: 85%;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #FF7A1A 0%, rgba(255,122,26,0) 75%);
+  clip-path: polygon(50% 0%, 70% 25%, 58% 100%, 42% 100%, 30% 25%);
+  opacity: 0.85;
+}
+.volcano-crater {
+  position: absolute;
+  left: 50%; top: 4%;
+  width: 26%; height: 12%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, #FFE066, #FF8C1A 55%, #B3260A 85%);
+  animation: craterGlow 1.4s ease-in-out infinite;
+}
+@keyframes craterGlow {
+  0%, 100% { box-shadow: 0 0 26px 10px rgba(255,120,20,0.6), inset 0 4px 10px rgba(0,0,0,0.45); }
+  50% { box-shadow: 0 0 36px 16px rgba(255,150,40,0.8), inset 0 4px 10px rgba(0,0,0,0.45); }
+}
+.volcano-smoke {
+  position: absolute;
+  left: 50%; top: -8%;
+  transform: translateX(-50%);
+  font-size: 34px;
+  opacity: 0.7;
+  animation: smokeDrift 3s ease-in-out infinite;
+}
+@keyframes smokeDrift {
+  0%, 100% { transform: translate(-50%, 0) scale(1); opacity: 0.6; }
+  50% { transform: translate(-40%, -14px) scale(1.15); opacity: 0.85; }
+}
+
 /* shape flourishes */
 .shape-balloon::after {
   content: ""; position: absolute; bottom: -22px; left: 50%;

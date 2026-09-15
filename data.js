@@ -114,11 +114,11 @@ const PHASES = [
     name: "Vulcão em Fúria",
     subtitle: "Tabuada do 10",
     mapPos: { left: 90.8, top: 58.6 },
-    motion: "swim", shape: "gem", icon: "🔥",
-    interaction: "drag", targetIcon: "🪨",
+    icon: "🔥",
+    interaction: "dragInto", volcanoDecor: true,
     palette: ["#E85D04", "#F48C06", "#DC2F02", "#FFBA08"],
     bg: ["#3A0CA3", "#7B2CBF"],
-    mechanicLabel: "Arraste a brasa até a pedra certa!"
+    mechanicLabel: "Arraste o resultado certo para dentro do vulcão!"
   },
   {
     id: 11, table: "challenge",

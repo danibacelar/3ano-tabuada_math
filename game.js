@@ -237,12 +237,25 @@ function buildTreeNode(emojis, styleCss) {
   return tree;
 }
 
+// Monta o vulcão grande (fase 10) — a cratera (#volcano-crater) é o alvo
+// real onde o arraste é conferido, o resto é só decoração.
+function buildVolcanoNode() {
+  const volcano = document.createElement("div");
+  volcano.className = "volcano-scene";
+  volcano.innerHTML =
+    '<div class="volcano-body"></div>' +
+    '<div class="volcano-smoke">💨</div>' +
+    '<div class="volcano-crater" id="volcano-crater"></div>';
+  return volcano;
+}
+
 // Cenário decorativo por fase (árvore florida da fase 3, pomar da fase 5,
-// cesta de colheita da fase 5...). Roda uma vez por rodada — os
-// alvos/mensageiro é que trocam a cada pergunta.
+// cesta de colheita da fase 5, vulcão da fase 10...). Roda uma vez por
+// rodada — os alvos/mensageiro é que trocam a cada pergunta.
 function renderPlayDecor(phase) {
   const field = $("#play-field");
   field.querySelectorAll(".tree-scene").forEach(el => el.remove());
+  field.querySelectorAll(".volcano-scene").forEach(el => el.remove());
 
   if (phase.treeDecor) {
     field.insertBefore(buildTreeNode(FLOWER_EMOJIS, "left:0; top:0; width:100%; height:100%;"), field.firstChild);
@@ -250,6 +263,8 @@ function renderPlayDecor(phase) {
     const fruitEmojis = ["🍎", "🍏"];
     field.insertBefore(buildTreeNode(fruitEmojis, "left:-4%; top:0; width:62%; height:100%;"), field.firstChild);
     field.insertBefore(buildTreeNode(fruitEmojis, "left:42%; top:0; width:62%; height:100%; transform:scaleX(-1);"), field.firstChild);
+  } else if (phase.volcanoDecor) {
+    field.insertBefore(buildVolcanoNode(), field.firstChild);
   }
 
   const basket = $("#harvest-basket");
@@ -323,6 +338,10 @@ function spawnItems(question, phase) {
   }
   if (phase.interaction === "steer") {
     spawnSteerRound(question, phase, field, rect);
+    return;
+  }
+  if (phase.interaction === "dragInto") {
+    spawnDragIntoRound(question, phase, field, rect);
     return;
   }
 
@@ -663,6 +682,119 @@ function spawnSteerRound(question, phase, field, rect) {
   state.steerListener = onMove;
 }
 
+/* ------------------------- Mini-game do vulcão (fase 10) -----------------
+   Usado por phase.interaction === "dragInto": aqui é o CONTRÁRIO das outras
+   fases de arrastar — os 4 resultados é que são arrastáveis, e existe um
+   único alvo fixo (a cratera do vulcão, #volcano-crater). A criança arrasta
+   o número que acha certo pra dentro da cratera. -------------------------- */
+function spawnDragIntoRound(question, phase, field, rect) {
+  const w = Math.max(rect.width, 300);
+  const h = Math.max(rect.height, 320);
+  const itemPx = currentItemSize();
+  const n = question.options.length;
+  const colW = 100 / n;
+
+  question.options.forEach((value, i) => {
+    const mover = document.createElement("div");
+    mover.className = "item item-mover";
+    mover.dataset.value = value;
+    const color = phase.palette[i % phase.palette.length];
+    mover.style.background = `radial-gradient(circle at 32% 28%, ${lighten(color)}, ${color} 75%)`;
+    mover.style.width = itemPx + "px";
+    mover.style.height = itemPx + "px";
+
+    const badge = document.createElement("span");
+    badge.className = "item-badge";
+    badge.textContent = phase.icon;
+    mover.appendChild(badge);
+
+    const label = document.createElement("span");
+    label.textContent = value;
+    mover.appendChild(label);
+
+    const centerPct = colW * i + colW / 2;
+    const homeLeft = clampedLeftPx(centerPct, w, itemPx);
+    const homeTop = clamp(h - itemPx - 20, 6, h - itemPx - 6);
+    mover.style.left = homeLeft + "px";
+    mover.style.top = homeTop + "px";
+    field.appendChild(mover);
+
+    setupDragIntoMover(mover, homeLeft, homeTop, rect, value, question.correct);
+  });
+}
+
+function setupDragIntoMover(mover, homeLeft, homeTop, rect, value, correct) {
+  let dragging = false;
+  let locked = false;
+  let startX = 0, startY = 0, originLeft = homeLeft, originTop = homeTop;
+  const w = rect.width, h = rect.height;
+  const itemPx = mover.offsetWidth || currentItemSize();
+
+  function snapTo(left, top) {
+    mover.style.transition = "left 0.28s ease, top 0.28s ease";
+    mover.style.left = left + "px";
+    mover.style.top = top + "px";
+    setTimeout(() => { mover.style.transition = ""; }, 290);
+  }
+
+  function isOverCrater() {
+    const crater = document.getElementById("volcano-crater");
+    if (!crater) return false;
+    const mRect = mover.getBoundingClientRect();
+    const cx = mRect.left + mRect.width / 2;
+    const cy = mRect.top + mRect.height / 2;
+    const margin = 12;
+    const r = crater.getBoundingClientRect();
+    return cx >= r.left - margin && cx <= r.right + margin && cy >= r.top - margin && cy <= r.bottom + margin;
+  }
+
+  function onPointerDown(e) {
+    if (locked || mover.classList.contains("wrong-disabled")) return;
+    dragging = true;
+    startX = e.clientX; startY = e.clientY;
+    originLeft = parseFloat(mover.style.left) || homeLeft;
+    originTop = parseFloat(mover.style.top) || homeTop;
+    mover.style.transition = "";
+    mover.classList.add("dragging");
+    mover.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  }
+
+  function onPointerMove(e) {
+    if (!dragging) return;
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    const left = clamp(originLeft + dx, 0, Math.max(0, w - itemPx));
+    const top = clamp(originTop + dy, 0, Math.max(0, h - itemPx));
+    mover.style.left = left + "px";
+    mover.style.top = top + "px";
+  }
+
+  function onPointerUp() {
+    if (!dragging) return;
+    dragging = false;
+    mover.classList.remove("dragging");
+    if (!isOverCrater()) { snapTo(homeLeft, homeTop); return; }
+    if (value === correct) {
+      locked = true;
+      const crater = document.getElementById("volcano-crater");
+      const craterRect = crater.getBoundingClientRect();
+      const fieldRect = $("#play-field").getBoundingClientRect();
+      mover.style.transition = "left 0.22s ease, top 0.22s ease, transform 0.25s ease, opacity 0.25s ease 0.1s";
+      mover.style.left = (craterRect.left - fieldRect.left + craterRect.width / 2 - itemPx / 2) + "px";
+      mover.style.top = (craterRect.top - fieldRect.top + craterRect.height / 2 - itemPx / 2) + "px";
+      mover.style.transform = "scale(0.25)";
+      mover.style.opacity = "0";
+    }
+    handleAnswer(mover, value, correct);
+    if (value !== correct) snapTo(homeLeft, homeTop);
+  }
+
+  mover.addEventListener("pointerdown", onPointerDown);
+  mover.addEventListener("pointermove", onPointerMove);
+  mover.addEventListener("pointerup", onPointerUp);
+  mover.addEventListener("pointercancel", onPointerUp);
+}
+
 function lighten(hex) {
   try {
     const c = hex.replace("#", "");
@@ -776,7 +908,7 @@ function handleAnswer(itemEl, value, correct) {
 
     if (state.phase.harvestBasket) {
       flyToBasket(itemEl);
-    } else {
+    } else if (!state.phase.volcanoDecor) {
       itemEl.classList.add("correct-pop");
     }
     if (state.phase.snowmanBuild) {
