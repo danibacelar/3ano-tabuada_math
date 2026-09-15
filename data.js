@@ -139,6 +139,15 @@ const SAVE_KEY = "tabuadaAdventureSave_v1";
 const PRAISE_MESSAGES = ["Isso aí!", "Mandou bem!", "Show de bola!", "Incrível!", "Perfeito!", "Arrasou!", "Muito bem!", "Excelente!"];
 const RETRY_MESSAGES = ["Quase!", "Tenta de novo!", "Você consegue!", "Foi por pouco!"];
 const COMBO_MESSAGES = { 3: "🔥 combo x3!", 5: "🔥🔥 combo x5!", 8: "🔥🔥🔥 combo incrível!" };
+const CHALLENGE_MOTIVATION = [
+  "Uau, olha só o que você conquistou! Você é incrível! 🌟",
+  "Você é um verdadeiro mestre da tabuada! Parabéns! 🏆",
+  "Seu cérebro está cada dia mais forte — que orgulho de você! 🧠✨",
+  "Você completou o desafio final! Isso é muito impressionante! 🎉",
+  "Você é imparável! Continue brilhando desse jeito! 🚀",
+  "Fantástico! A multiplicação já não tem mais segredos pra você! 🔮",
+  "Que jornada incrível! Você merece comemorar bastante! 🎊"
+];
 
 /* ---------- 3. GERAÇÃO DE FATOS DA TABUADA -------------------------------- */
 function canonicalKey(a, b) {

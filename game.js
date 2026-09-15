@@ -1022,6 +1022,69 @@ function endRound() {
     unlockedPhaseName: unlockedPhaseObj ? unlockedPhaseObj.name : null
   };
   renderMap();
+
+  if (phase.table === "challenge") {
+    showChallengeCompleteModal(stars, state.score, state.correctFirstTry, state.roundLength);
+  }
+}
+
+// Acha, entre as fases normais (1 a 10), a que tem a pior taxa de acerto
+// nos fatos da tabuada (usando o histórico salvo em factStats). Ignora
+// fases que a criança nunca tentou.
+function findWeakestPhase() {
+  let weakest = null, weakestAcc = Infinity;
+  PHASES.forEach(phase => {
+    if (phase.table === "challenge") return;
+    const facts = factsForPhase(phase);
+    let correct = 0, wrong = 0;
+    facts.forEach(f => {
+      const s = SAVE.factStats[f.key];
+      if (s) { correct += s.correct; wrong += s.wrong; }
+    });
+    const total = correct + wrong;
+    if (total === 0) return;
+    const acc = correct / total;
+    if (acc < weakestAcc) { weakestAcc = acc; weakest = phase; }
+  });
+  return weakest;
+}
+
+function showChallengeCompleteModal(stars, score, correctFirstTry, roundLength) {
+  const root = $("#modal-root");
+  root.innerHTML = "";
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  const starsStr = "⭐".repeat(stars) + "☆".repeat(3 - stars);
+  const accuracyPct = Math.round((correctFirstTry / roundLength) * 100);
+  const phrase = pick(CHALLENGE_MOTIVATION);
+  const weakest = findWeakestPhase();
+
+  const improveHtml = weakest ? `
+    <div class="challenge-improve">
+      <div class="challenge-improve-label">Área para praticar mais:</div>
+      <div class="challenge-improve-phase">${weakest.icon} ${weakest.name}</div>
+    </div>` : "";
+
+  overlay.innerHTML = `
+    <div class="modal-box challenge-modal">
+      <div class="challenge-modal-emoji">🏆</div>
+      <h3>${phrase}</h3>
+      <div class="challenge-modal-stars">${starsStr}</div>
+      <p>Você completou o Templo de Cristal com <strong>${score} pontos</strong> e <strong>${accuracyPct}%</strong> de acerto de primeira!</p>
+      ${improveHtml}
+      <div class="modal-actions">
+        ${weakest ? `<button class="btn-cancel" id="challenge-practice">Praticar ${weakest.name}</button>` : ""}
+        <button class="btn-continue" id="challenge-close">Continuar</button>
+      </div>
+    </div>`;
+  root.appendChild(overlay);
+  $("#challenge-close").addEventListener("click", () => { root.innerHTML = ""; });
+  if (weakest) {
+    $("#challenge-practice").addEventListener("click", () => {
+      root.innerHTML = "";
+      openIntro(weakest);
+    });
+  }
 }
 
 let roundToastTimer = null;
