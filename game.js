@@ -205,37 +205,59 @@ function startRound(phase) {
   nextQuestion();
 }
 
-// Cenário decorativo por fase (ex.: a árvore florida da fase 3). Roda uma
-// vez por rodada — os alvos/mensageiro é que trocam a cada pergunta.
-function renderPlayDecor(phase) {
-  const field = $("#play-field");
-  field.querySelectorAll(".tree-scene").forEach(el => el.remove());
-  if (!phase.treeDecor) return;
+const TREE_DECO_SPOTS = [
+  { l: 8, t: 6, r: -12 }, { l: 28, t: 2, r: 10 }, { l: 50, t: 4, r: -8 }, { l: 70, t: 8, r: 14 },
+  { l: 88, t: 16, r: -14 }, { l: 16, t: 26, r: 8 }, { l: 42, t: 22, r: -10 }, { l: 62, t: 28, r: 12 },
+  { l: 84, t: 34, r: -6 }, { l: 22, t: 46, r: 10 }, { l: 56, t: 40, r: -12 }, { l: 78, t: 48, r: 8 }
+];
 
+// Monta uma árvore (copa + tronco + frutinhas/flores decorativas). `styleCss`
+// posiciona/dimensiona a árvore dentro do campo (uma só árvore grande ou
+// várias menores lado a lado, conforme a fase).
+function buildTreeNode(emojis, styleCss) {
   const tree = document.createElement("div");
   tree.className = "tree-scene";
+  tree.style.cssText = styleCss;
   tree.innerHTML =
     '<div class="tree-trunk"></div>' +
     '<div class="tree-canopy tree-canopy-a"></div>' +
     '<div class="tree-canopy tree-canopy-b"></div>' +
     '<div class="tree-canopy tree-canopy-c"></div>';
 
-  const decoSpots = [
-    { l: 8, t: 6, r: -12 }, { l: 28, t: 2, r: 10 }, { l: 50, t: 4, r: -8 }, { l: 70, t: 8, r: 14 },
-    { l: 88, t: 16, r: -14 }, { l: 16, t: 26, r: 8 }, { l: 42, t: 22, r: -10 }, { l: 62, t: 28, r: 12 },
-    { l: 84, t: 34, r: -6 }, { l: 22, t: 46, r: 10 }, { l: 56, t: 40, r: -12 }, { l: 78, t: 48, r: 8 }
-  ];
-  decoSpots.forEach((spot, i) => {
+  TREE_DECO_SPOTS.forEach((spot, i) => {
     const f = document.createElement("span");
     f.className = "tree-flower-deco";
-    f.textContent = FLOWER_EMOJIS[i % FLOWER_EMOJIS.length];
+    f.textContent = emojis[i % emojis.length];
     f.style.left = spot.l + "%";
     f.style.top = spot.t + "%";
     f.style.transform = `rotate(${spot.r}deg)`;
     tree.appendChild(f);
   });
+  return tree;
+}
 
-  field.insertBefore(tree, field.firstChild);
+// Cenário decorativo por fase (árvore florida da fase 3, pomar da fase 5,
+// cesta de colheita da fase 5...). Roda uma vez por rodada — os
+// alvos/mensageiro é que trocam a cada pergunta.
+function renderPlayDecor(phase) {
+  const field = $("#play-field");
+  field.querySelectorAll(".tree-scene").forEach(el => el.remove());
+
+  if (phase.treeDecor) {
+    field.insertBefore(buildTreeNode(FLOWER_EMOJIS, "left:0; top:0; width:100%; height:100%;"), field.firstChild);
+  } else if (phase.orchardDecor) {
+    const fruitEmojis = ["🍎", "🍏"];
+    field.insertBefore(buildTreeNode(fruitEmojis, "left:-4%; top:0; width:62%; height:100%;"), field.firstChild);
+    field.insertBefore(buildTreeNode(fruitEmojis, "left:42%; top:0; width:62%; height:100%; transform:scaleX(-1);"), field.firstChild);
+  }
+
+  const basket = $("#harvest-basket");
+  if (phase.harvestBasket) {
+    basket.hidden = false;
+    $("#basket-apples").innerHTML = "";
+  } else {
+    basket.hidden = true;
+  }
 }
 
 function renderProgressDots() {
@@ -274,21 +296,43 @@ function spawnItems(question, phase) {
 
   question.options.forEach((value, i) => {
     const item = document.createElement("div");
-    item.className = `item shape-${phase.shape} motion-${phase.motion}`;
     item.dataset.value = value;
-    const color = phase.palette[i % phase.palette.length];
-    item.style.background = `radial-gradient(circle at 32% 28%, ${lighten(color)}, ${color} 75%)`;
 
-    const badge = document.createElement("span");
-    badge.className = "item-badge";
-    badge.textContent = phase.icon;
-    item.appendChild(badge);
+    if (phase.optionVisual === "fruit") {
+      const bigPx = Math.round(currentItemSize() * 1.5);
+      item.className = `item item-emoji-style motion-${phase.motion}`;
+      item.style.width = bigPx + "px";
+      item.style.height = bigPx + "px";
 
-    const label = document.createElement("span");
-    label.textContent = value;
-    item.appendChild(label);
+      const emoji = document.createElement("span");
+      emoji.className = "item-emoji-visual";
+      emoji.textContent = phase.icon;
+      emoji.style.fontSize = Math.round(bigPx * 0.92) + "px";
+      item.appendChild(emoji);
 
-    positionItem(item, phase.motion, i, n, rect);
+      const number = document.createElement("span");
+      number.className = "item-emoji-number";
+      number.textContent = value;
+      item.appendChild(number);
+
+      positionItem(item, phase.motion, i, n, rect, bigPx);
+    } else {
+      item.className = `item shape-${phase.shape} motion-${phase.motion}`;
+      const color = phase.palette[i % phase.palette.length];
+      item.style.background = `radial-gradient(circle at 32% 28%, ${lighten(color)}, ${color} 75%)`;
+
+      const badge = document.createElement("span");
+      badge.className = "item-badge";
+      badge.textContent = phase.icon;
+      item.appendChild(badge);
+
+      const label = document.createElement("span");
+      label.textContent = value;
+      item.appendChild(label);
+
+      positionItem(item, phase.motion, i, n, rect);
+    }
+
     item.addEventListener("click", () => handleAnswer(item, value, question.correct));
     field.appendChild(item);
 
@@ -322,8 +366,8 @@ function spawnDragRound(question, phase, field, rect) {
   const w = Math.max(rect.width, 300);
   const h = Math.max(rect.height, 320);
   const itemPx = currentItemSize();
-  const isFlower = phase.targetStyle === "flower";
-  const targetPx = isFlower ? Math.round(itemPx * 1.55) : itemPx;
+  const isEmojiStyle = phase.optionVisual === "flower" || phase.optionVisual === "fruit";
+  const targetPx = isEmojiStyle ? Math.round(itemPx * 1.55) : itemPx;
   const grid = phase.treeDecor ? TREE_TARGET_GRID : DRAG_TARGET_GRID;
   const targets = [];
 
@@ -336,16 +380,16 @@ function spawnDragRound(question, phase, field, rect) {
     target.style.left = clampedLeftPx(spot.left, w, targetPx) + "px";
     target.style.top = clamp((h * spot.top / 100) - targetPx / 2, 6, h - targetPx - 6) + "px";
 
-    if (isFlower) {
-      target.className = "item item-target target-flower";
+    if (isEmojiStyle) {
+      target.className = "item item-target item-emoji-style";
       const emoji = document.createElement("span");
-      emoji.className = "target-flower-emoji";
-      emoji.textContent = FLOWER_EMOJIS[i % FLOWER_EMOJIS.length];
+      emoji.className = "item-emoji-visual";
+      emoji.textContent = phase.optionVisual === "flower" ? FLOWER_EMOJIS[i % FLOWER_EMOJIS.length] : phase.icon;
       emoji.style.fontSize = Math.round(targetPx * 0.92) + "px";
       target.appendChild(emoji);
 
       const number = document.createElement("span");
-      number.className = "target-flower-number";
+      number.className = "item-emoji-number";
       number.textContent = value;
       target.appendChild(number);
     } else {
@@ -519,13 +563,13 @@ function clampedLeftPx(centerPct, containerWidth, itemPx) {
   return Math.min(Math.max(left, margin), maxLeft);
 }
 
-function positionItem(item, motion, i, n, rect) {
+function positionItem(item, motion, i, n, rect, sizeOverride) {
   const colW = 100 / n;
   const jitter = (Math.random() - 0.5) * (colW * 0.4);
   const leftPct = colW * i + colW / 2 + jitter;
   const w = Math.max(rect.width, 300);
   const h = Math.max(rect.height, 320);
-  const itemPx = currentItemSize();
+  const itemPx = sizeOverride || currentItemSize();
   const leftPx = clampedLeftPx(leftPct, w, itemPx);
 
   if (motion === "rise" || motion === "fall" || motion === "fallFast") {
@@ -603,7 +647,11 @@ function handleAnswer(itemEl, value, correct) {
     }
     state.bestComboRound = Math.max(state.bestComboRound, state.combo);
 
-    itemEl.classList.add("correct-pop");
+    if (state.phase.harvestBasket) {
+      flyToBasket(itemEl);
+    } else {
+      itemEl.classList.add("correct-pop");
+    }
     showScorePopup(itemEl, points);
     showPraise();
     maybeShowCombo();
@@ -613,7 +661,7 @@ function handleAnswer(itemEl, value, correct) {
     setTimeout(() => {
       state.index++;
       nextQuestion();
-    }, 620);
+    }, state.phase.harvestBasket ? 750 : 620);
   } else {
     if (!state.hadMistakeThisQuestion) {
       state.hadMistakeThisQuestion = true;
@@ -673,6 +721,32 @@ function showScorePopup(sourceEl, points) {
     popup.style.opacity = "0";
   });
   setTimeout(() => popup.remove(), 720);
+}
+
+// Fase 5: a maçã acertada "cai" da árvore até a cesta, em vez do pop padrão.
+function flyToBasket(itemEl) {
+  const basket = $("#harvest-basket");
+  if (!basket) { itemEl.classList.add("correct-pop"); return; }
+  const field = $("#play-field");
+  const fieldRect = field.getBoundingClientRect();
+  const basketRect = basket.getBoundingClientRect();
+  const itemRect = itemEl.getBoundingClientRect();
+
+  itemEl.style.animation = "none";
+  itemEl.style.transition = "left 0.5s ease-in, top 0.5s ease-in, transform 0.5s ease-in, opacity 0.4s ease-in 0.3s";
+  itemEl.style.left = (basketRect.left - fieldRect.left + basketRect.width / 2 - itemRect.width / 2) + "px";
+  itemEl.style.top = (basketRect.top - fieldRect.top) + "px";
+  itemEl.style.transform = "scale(0.35)";
+  itemEl.style.opacity = "0";
+  setTimeout(addAppleToBasket, 480);
+}
+
+function addAppleToBasket() {
+  const wrap = $("#basket-apples");
+  if (!wrap) return;
+  const apple = document.createElement("span");
+  apple.textContent = "🍎";
+  wrap.appendChild(apple);
 }
 
 /* ---------------------------------------------------------------------- */

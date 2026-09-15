@@ -40,7 +40,7 @@ const PHASES = [
     subtitle: "Tabuada do 3",
     mapPos: { left: 30.2, top: 41.9 },
     motion: "flutter", shape: "butterfly", icon: "🦋",
-    interaction: "drag", moverBare: true, treeDecor: true, targetStyle: "flower",
+    interaction: "drag", moverBare: true, treeDecor: true, optionVisual: "flower",
     palette: ["#B983FF", "#FF9F9F", "#5AC8FA", "#FF7EB6"],
     bg: ["#FDE2E4", "#DCEEDD"],
     mechanicLabel: "Arraste a borboleta até a flor certa!"
@@ -61,10 +61,11 @@ const PHASES = [
     name: "Pomar Mágico",
     subtitle: "Tabuada do 5",
     mapPos: { left: 30.2, top: 24.1 },
-    motion: "sway", shape: "fruit", icon: "🍎",
+    motion: "static", shape: "fruit", icon: "🍎",
+    orchardDecor: true, harvestBasket: true, optionVisual: "fruit",
     palette: ["#FF6F59", "#FFB627", "#8AC926", "#FF4D6D"],
     bg: ["#FFF3B0", "#D8E9A8"],
-    mechanicLabel: "Colha a fruta certa!"
+    mechanicLabel: "Toque na maçã certa e veja ela cair na cesta!"
   },
   {
     id: 6, table: 6,

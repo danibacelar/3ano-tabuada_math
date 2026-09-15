@@ -578,14 +578,15 @@ button {
   50% { transform: translateY(-8px); }
 }
 
-/* Alvo em forma de flor (fase 3) — o número fica num selinho no meio
-   da flor, em vez de dentro de uma bolinha colorida. */
-.item-target.target-flower {
+/* Item com "emoji grande + selinho do número" (flor da fase 3, maçã da
+   fase 5...), em vez de dentro de uma bolinha colorida. Funciona tanto
+   nos alvos de arrastar quanto nos itens de toque. */
+.item.item-emoji-style {
   background: none;
   border: none;
   box-shadow: none;
 }
-.target-flower-emoji {
+.item-emoji-visual {
   position: absolute;
   inset: 0;
   display: flex;
@@ -594,7 +595,7 @@ button {
   line-height: 1;
   filter: drop-shadow(0 6px 8px rgba(0,0,0,0.2));
 }
-.target-flower-number {
+.item-emoji-number {
   position: relative;
   z-index: 1;
   background: rgba(255,255,255,0.94);
@@ -640,6 +641,40 @@ button {
   font-size: 22px;
   opacity: 0.92;
   filter: drop-shadow(0 2px 3px rgba(0,0,0,0.15));
+}
+
+/* Cesta de colheita (fase 5) — some enche de maçãs conforme a criança
+   acerta, fixa embaixo do campo de jogo. */
+.harvest-basket {
+  position: absolute;
+  left: 50%;
+  bottom: 3%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 3;
+  pointer-events: none;
+}
+.basket-icon { font-size: 52px; filter: drop-shadow(0 6px 6px rgba(0,0,0,0.3)); }
+.basket-apples {
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: center;
+  gap: 1px;
+  width: 92px;
+  margin-bottom: -12px;
+  position: relative;
+  z-index: 1;
+}
+.basket-apples span {
+  font-size: 15px;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.25));
+  animation: appleDrop 0.35s ease;
+}
+@keyframes appleDrop {
+  0% { transform: translateY(-14px) scale(0.6); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 /* shape flourishes */
