@@ -84,7 +84,7 @@ const PHASES = [
     subtitle: "Tabuada do 7",
     mapPos: { left: 58.5, top: 37.8 },
     motion: "bob", shape: "skier", icon: "⛷️",
-    interaction: "drag", moverBare: true, targetIcon: "🧊",
+    interaction: "drag", moverBare: true, moverFlip: true, targetIcon: "🧊",
     moverHome: { left: 14, top: 50 },
     targetGrid: [
       { left: 80, top: 16 }, { left: 80, top: 40 },

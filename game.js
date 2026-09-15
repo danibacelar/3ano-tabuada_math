@@ -455,7 +455,7 @@ function spawnDragRound(question, phase, field, rect) {
   });
 
   const mover = document.createElement("div");
-  mover.className = `item item-mover shape-${phase.shape}` + (phase.moverBare ? " mover-bare" : "");
+  mover.className = `item item-mover shape-${phase.shape}` + (phase.moverBare ? " mover-bare" : "") + (phase.moverFlip ? " mover-flip" : "");
   const moverPx = phase.moverBare ? Math.round(itemPx * 1.7) : itemPx;
   mover.style.width = moverPx + "px";
   mover.style.height = moverPx + "px";

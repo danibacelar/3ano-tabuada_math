@@ -578,6 +578,17 @@ button {
   50% { transform: translateY(-8px); }
 }
 
+/* mover "espelhado" (fase 7) — vira o bichinho pra ele ficar de frente
+   pro lado que os alvos estão, em vez do espelhamento padrão do emoji. */
+.item-mover.mover-flip { transform: scaleX(-1); }
+.item-mover.mover-bare.mover-flip { animation-name: moverBareBobFlip; }
+@keyframes moverBareBobFlip {
+  0%, 100% { transform: scaleX(-1) translateY(0); }
+  50% { transform: scaleX(-1) translateY(-8px); }
+}
+.item-mover.mover-flip.dragging { transform: scaleX(-1) scale(1.1); }
+.item-mover.mover-bare.mover-flip.dragging { transform: scaleX(-1) scale(1.15); }
+
 /* Item com "emoji grande + selinho do número" (flor da fase 3, maçã da
    fase 5...), em vez de dentro de uma bolinha colorida. Funciona tanto
    nos alvos de arrastar quanto nos itens de toque. */
