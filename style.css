@@ -762,7 +762,7 @@ button {
 .volcano-scene {
   position: absolute;
   left: 50%;
-  top: 0;
+  bottom: 0;
   width: 82%;
   height: 60%;
   transform: translateX(-50%);

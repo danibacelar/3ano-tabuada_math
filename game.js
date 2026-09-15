@@ -698,7 +698,7 @@ function spawnDragIntoRound(question, phase, field, rect) {
 
     const centerPct = colW * i + colW / 2;
     const homeLeft = clampedLeftPx(centerPct, w, itemPx);
-    const homeTop = clamp(h - itemPx - 20, 6, h - itemPx - 6);
+    const homeTop = clamp(20, 6, h - itemPx - 6);
     mover.style.left = homeLeft + "px";
     mover.style.top = homeTop + "px";
     field.appendChild(mover);
