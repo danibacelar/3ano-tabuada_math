@@ -94,7 +94,7 @@ const PHASES = [
     name: "Castelo Real",
     subtitle: "Tabuada do 8",
     mapPos: { left: 65.8, top: 61.2 },
-    motion: "fall", shape: "flag", icon: "🚩",
+    motion: "fall", shape: "flag", icon: "🚩", optionVisual: "emoji",
     palette: ["#7209B7", "#3A0CA3", "#4361EE", "#F72585"],
     bg: ["#B8C0FF", "#E7ECFF"],
     mechanicLabel: "Toque na bandeira certa!"
