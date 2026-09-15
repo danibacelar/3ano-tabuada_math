@@ -1062,7 +1062,7 @@ function showChallengeCompleteModal(stars, score, correctFirstTry, roundLength) 
   const improveHtml = weakest ? `
     <div class="challenge-improve">
       <div class="challenge-improve-label">Área para praticar mais:</div>
-      <div class="challenge-improve-phase">${weakest.icon} ${weakest.name}</div>
+      <div class="challenge-improve-phase">${weakest.icon} ${weakest.subtitle}</div>
     </div>` : "";
 
   overlay.innerHTML = `
@@ -1073,7 +1073,7 @@ function showChallengeCompleteModal(stars, score, correctFirstTry, roundLength) 
       <p>Você completou o Templo de Cristal com <strong>${score} pontos</strong> e <strong>${accuracyPct}%</strong> de acerto de primeira!</p>
       ${improveHtml}
       <div class="modal-actions">
-        ${weakest ? `<button class="btn-cancel" id="challenge-practice">Praticar ${weakest.name}</button>` : ""}
+        ${weakest ? `<button class="btn-cancel" id="challenge-practice">Praticar mais ${weakest.subtitle.toLowerCase()}</button>` : ""}
         <button class="btn-continue" id="challenge-close">Continuar</button>
       </div>
     </div>`;
