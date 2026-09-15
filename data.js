@@ -73,9 +73,10 @@ const PHASES = [
     subtitle: "Tabuada do 6",
     mapPos: { left: 54.1, top: 21.2 },
     motion: "fall", shape: "snow", icon: "❄️",
+    optionVisual: "emoji", snowmanBuild: true,
     palette: ["#A2D2FF", "#CDB4DB", "#90E0EF", "#CAF0F8"],
     bg: ["#CAF0F8", "#8ECAE6"],
-    mechanicLabel: "Pegue o floco certo!"
+    mechanicLabel: "Clique no floco certo e ajude a construir o boneco de neve!"
   },
   {
     id: 7, table: 7,

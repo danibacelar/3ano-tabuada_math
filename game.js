@@ -258,6 +258,30 @@ function renderPlayDecor(phase) {
   } else {
     basket.hidden = true;
   }
+
+  const snowman = $("#snowman-build");
+  if (phase.snowmanBuild) {
+    snowman.hidden = false;
+    snowman.querySelectorAll(".sm-part").forEach(p => p.classList.remove("sm-visible"));
+  } else {
+    snowman.hidden = true;
+  }
+}
+
+// Fase 6: cada pergunta respondida corretamente revela mais uma peça do
+// boneco de neve (na ordem: base, meio, cabeça, braços, cachecol, botões,
+// olhos, nariz, boca, cartola) — fica pronto exatamente na 10ª e última
+// pergunta da rodada.
+const SNOWMAN_PARTS = [
+  "sm-base", "sm-mid", "sm-head", "sm-arms", "sm-scarf",
+  "sm-buttons", "sm-eyes", "sm-nose", "sm-mouth", "sm-hat"
+];
+
+function revealSnowmanPart(questionIndex) {
+  const partClass = SNOWMAN_PARTS[questionIndex];
+  if (!partClass) return;
+  const el = document.querySelector("#snowman-build ." + partClass);
+  if (el) el.classList.add("sm-visible");
 }
 
 function renderProgressDots() {
@@ -298,7 +322,7 @@ function spawnItems(question, phase) {
     const item = document.createElement("div");
     item.dataset.value = value;
 
-    if (phase.optionVisual === "fruit") {
+    if (phase.optionVisual) {
       const bigPx = Math.round(currentItemSize() * 1.5);
       item.className = `item item-emoji-style motion-${phase.motion}`;
       item.style.width = bigPx + "px";
@@ -306,7 +330,7 @@ function spawnItems(question, phase) {
 
       const emoji = document.createElement("span");
       emoji.className = "item-emoji-visual";
-      emoji.textContent = phase.icon;
+      emoji.textContent = phase.optionVisual === "flower" ? FLOWER_EMOJIS[i % FLOWER_EMOJIS.length] : phase.icon;
       emoji.style.fontSize = Math.round(bigPx * 0.92) + "px";
       item.appendChild(emoji);
 
@@ -366,7 +390,7 @@ function spawnDragRound(question, phase, field, rect) {
   const w = Math.max(rect.width, 300);
   const h = Math.max(rect.height, 320);
   const itemPx = currentItemSize();
-  const isEmojiStyle = phase.optionVisual === "flower" || phase.optionVisual === "fruit";
+  const isEmojiStyle = !!phase.optionVisual;
   const targetPx = isEmojiStyle ? Math.round(itemPx * 1.55) : itemPx;
   const grid = phase.treeDecor ? TREE_TARGET_GRID : DRAG_TARGET_GRID;
   const targets = [];
@@ -651,6 +675,9 @@ function handleAnswer(itemEl, value, correct) {
       flyToBasket(itemEl);
     } else {
       itemEl.classList.add("correct-pop");
+    }
+    if (state.phase.snowmanBuild) {
+      revealSnowmanPart(state.index);
     }
     showScorePopup(itemEl, points);
     showPraise();

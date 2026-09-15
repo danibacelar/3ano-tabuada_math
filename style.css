@@ -645,6 +645,7 @@ button {
 
 /* Cesta de colheita (fase 5) — some enche de maçãs conforme a criança
    acerta, fixa embaixo do campo de jogo. */
+.harvest-basket[hidden] { display: none; }
 .harvest-basket {
   position: absolute;
   left: 50%;
@@ -675,6 +676,85 @@ button {
 @keyframes appleDrop {
   0% { transform: translateY(-14px) scale(0.6); opacity: 0; }
   100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* Boneco de neve (fase 6) — vai ganhando peças a cada acerto, uma por
+   pergunta, até ficar completo no fim da rodada. Fica parado no centro
+   inferior do campo de jogo. */
+.snowman-build[hidden] { display: none; }
+.snowman-build {
+  position: absolute;
+  left: 50%;
+  bottom: 2%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 210px;
+  z-index: 3;
+  pointer-events: none;
+}
+.sm-part {
+  position: absolute;
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.sm-part.sm-visible { opacity: 1; transform: scale(1); }
+
+.sm-base, .sm-mid, .sm-head {
+  left: 50%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #FFFFFF, #DCECF5 78%);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.18), inset -8px -8px 12px rgba(150,180,200,0.4);
+}
+.sm-base { width: 108px; height: 108px; bottom: 0; margin-left: -54px; }
+.sm-mid  { width: 78px;  height: 78px;  bottom: 88px; margin-left: -39px; }
+.sm-head { width: 54px;  height: 54px;  bottom: 152px; margin-left: -27px; }
+
+.sm-arms { left: 50%; bottom: 112px; margin-left: -46px; width: 92px; height: 6px; }
+.sm-arm-l, .sm-arm-r {
+  position: absolute; top: 0; width: 40px; height: 4px;
+  background: #6D4C33; border-radius: 2px;
+}
+.sm-arm-l { left: 0; transform: rotate(28deg); transform-origin: right center; }
+.sm-arm-r { right: 0; transform: rotate(-28deg); transform-origin: left center; }
+
+.sm-scarf {
+  left: 50%; bottom: 140px; margin-left: -30px;
+  width: 60px; height: 14px; border-radius: 6px;
+  background: repeating-linear-gradient(90deg, #E63946 0 10px, #C1121F 10px 20px);
+}
+
+.sm-buttons { left: 50%; bottom: 98px; margin-left: -3px; width: 6px; height: 46px; }
+.sm-buttons span {
+  position: absolute; left: 0; width: 6px; height: 6px;
+  border-radius: 50%; background: #2B2B2B;
+}
+.sm-buttons span:nth-child(1) { top: 0; }
+.sm-buttons span:nth-child(2) { top: 16px; }
+.sm-buttons span:nth-child(3) { top: 32px; }
+
+.sm-eyes { left: 50%; bottom: 180px; margin-left: -12px; width: 24px; height: 6px; }
+.sm-eyes span { position: absolute; top: 0; width: 5px; height: 5px; border-radius: 50%; background: #2B2B2B; }
+.sm-eyes span:first-child { left: 0; }
+.sm-eyes span:last-child { right: 0; }
+
+.sm-nose {
+  left: 50%; bottom: 174px; margin-left: -1px;
+  width: 0; height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 13px solid #F4A261;
+}
+
+.sm-mouth { left: 50%; bottom: 166px; margin-left: -9px; width: 18px; height: 6px; }
+.sm-mouth span { position: absolute; bottom: 0; width: 3px; height: 3px; border-radius: 50%; background: #2B2B2B; }
+.sm-mouth span:nth-child(1) { left: 0; }
+.sm-mouth span:nth-child(2) { left: 7px; bottom: -2px; }
+.sm-mouth span:nth-child(3) { left: 14px; }
+
+.sm-hat {
+  left: 50%; bottom: 196px; margin-left: -17px;
+  font-size: 34px; line-height: 1;
 }
 
 /* shape flourishes */
