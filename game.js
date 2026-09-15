@@ -17,8 +17,7 @@ let state = {
   correctFirstTry: 0,
   mistakes: 0,
   hadMistakeThisQuestion: false,
-  flutterTimers: [],
-  steerListener: null
+  flutterTimers: []
 };
 
 /* ---------------------------------------------------------------------- */
@@ -327,17 +326,8 @@ function spawnItems(question, phase) {
   field.querySelectorAll(".item").forEach(el => el.remove());
   const rect = field.getBoundingClientRect();
 
-  if (state.steerListener) {
-    field.removeEventListener("pointermove", state.steerListener);
-    state.steerListener = null;
-  }
-
   if (phase.interaction === "drag") {
     spawnDragRound(question, phase, field, rect);
-    return;
-  }
-  if (phase.interaction === "steer") {
-    spawnSteerRound(question, phase, field, rect);
     return;
   }
   if (phase.interaction === "dragInto") {
@@ -421,7 +411,7 @@ function spawnDragRound(question, phase, field, rect) {
   const itemPx = currentItemSize();
   const isEmojiStyle = !!phase.optionVisual;
   const targetPx = isEmojiStyle ? Math.round(itemPx * 1.55) : itemPx;
-  const grid = phase.treeDecor ? TREE_TARGET_GRID : DRAG_TARGET_GRID;
+  const grid = phase.targetGrid || (phase.treeDecor ? TREE_TARGET_GRID : DRAG_TARGET_GRID);
   const targets = [];
 
   question.options.forEach((value, i) => {
@@ -478,8 +468,12 @@ function spawnDragRound(question, phase, field, rect) {
   }
   mover.textContent = phase.icon;
 
-  const homeLeft = clamp(w / 2 - moverPx / 2, 6, w - moverPx - 6);
-  const homeTop = clamp(h - moverPx - 26, 6, h - moverPx - 6);
+  const homeLeft = phase.moverHome
+    ? clamp((w * phase.moverHome.left / 100) - moverPx / 2, 6, w - moverPx - 6)
+    : clamp(w / 2 - moverPx / 2, 6, w - moverPx - 6);
+  const homeTop = phase.moverHome
+    ? clamp((h * phase.moverHome.top / 100) - moverPx / 2, 6, h - moverPx - 6)
+    : clamp(h - moverPx - 26, 6, h - moverPx - 6);
   mover.style.left = homeLeft + "px";
   mover.style.top = homeTop + "px";
   field.appendChild(mover);
@@ -487,7 +481,8 @@ function spawnDragRound(question, phase, field, rect) {
   setupDragMover(mover, targets, homeLeft, homeTop, rect, question.correct);
 
   if (phase.retargetDelay) {
-    startTargetRelocation(targets, phase.retargetDelay, w, h, targetPx);
+    const pool = phase.retargetWithinGrid ? grid : RETARGET_SPOTS;
+    startTargetRelocation(targets, phase.retargetDelay, w, h, targetPx, pool);
   }
 }
 
@@ -500,11 +495,12 @@ const RETARGET_SPOTS = [
   { left: 22, top: 64 }, { left: 78, top: 64 }
 ];
 
-function startTargetRelocation(targets, delay, w, h, targetPx) {
+function startTargetRelocation(targets, delay, w, h, targetPx, pool) {
+  const spotsPool = pool || RETARGET_SPOTS;
   const timer = setInterval(() => {
     const active = targets.filter(t => !t.classList.contains("wrong-disabled") && !t.dataset.locked);
     if (active.length === 0) { clearInterval(timer); return; }
-    const spots = shuffle(RETARGET_SPOTS).slice(0, active.length);
+    const spots = shuffle(spotsPool).slice(0, active.length);
     active.forEach((t, i) => {
       t.classList.add("target-hide");
       const moveTimer = setTimeout(() => {
@@ -587,76 +583,6 @@ function setupDragMover(mover, targets, homeLeft, homeTop, rect, correct) {
   mover.addEventListener("pointermove", onPointerMove);
   mover.addEventListener("pointerup", onPointerUp);
   mover.addEventListener("pointercancel", onPointerUp);
-}
-
-/* ------------------------- Mini-game de esqui (fase 7) -------------------
-   Usado por phase.interaction === "steer": os 4 números caem continuamente
-   (que nem os flocos da fase 6), e o esquiador fica numa altura fixa
-   seguindo o mouse (ou o dedo, arrastando no celular) só na horizontal —
-   sem precisar clicar. Assim que um número passa em cima do esquiador,
-   já conta como resposta: se for o certo, acerta; se for errado, ele fica
-   desabilitado (igual às outras fases) e o esquiador segue livre. ------ */
-function spawnSteerRound(question, phase, field, rect) {
-  const w = Math.max(rect.width, 300);
-  const h = Math.max(rect.height, 320);
-  const itemPx = currentItemSize();
-  const n = question.options.length;
-  const targets = [];
-
-  question.options.forEach((value, i) => {
-    const target = document.createElement("div");
-    target.className = "item item-target shape-target motion-fall";
-    target.dataset.value = value;
-    const color = phase.palette[i % phase.palette.length];
-    target.style.background = `radial-gradient(circle at 32% 28%, ${lighten(color)}, ${color} 75%)`;
-
-    const badge = document.createElement("span");
-    badge.className = "item-badge";
-    badge.textContent = phase.targetIcon || "🧊";
-    target.appendChild(badge);
-
-    const label = document.createElement("span");
-    label.textContent = value;
-    target.appendChild(label);
-
-    positionItem(target, "fall", i, n, rect);
-    field.appendChild(target);
-    targets.push(target);
-  });
-
-  const skierPx = Math.round(itemPx * 1.7);
-  const skier = document.createElement("div");
-  skier.className = `item item-mover mover-bare shape-${phase.shape}`;
-  skier.style.width = skierPx + "px";
-  skier.style.height = skierPx + "px";
-  skier.style.fontSize = Math.round(skierPx * 0.8) + "px";
-  skier.textContent = phase.icon;
-  skier.style.top = clamp(h * 0.72, 6, h - skierPx - 6) + "px";
-  skier.style.left = clamp(w / 2 - skierPx / 2, 6, w - skierPx - 6) + "px";
-  field.appendChild(skier);
-
-  function onMove(e) {
-    const left = clamp(e.clientX - rect.left - skierPx / 2, 0, Math.max(0, w - skierPx));
-    skier.style.left = left + "px";
-  }
-
-  function checkCollision() {
-    const margin = 14;
-    const sRect = skier.getBoundingClientRect();
-    const hit = targets.find(t => {
-      if (t.classList.contains("wrong-disabled") || t.dataset.locked) return false;
-      const r = t.getBoundingClientRect();
-      return sRect.left - margin <= r.right && sRect.right + margin >= r.left &&
-             sRect.top - margin <= r.bottom && sRect.bottom + margin >= r.top;
-    });
-    if (hit) handleAnswer(hit, Number(hit.dataset.value), question.correct);
-  }
-
-  field.addEventListener("pointermove", onMove);
-  state.steerListener = onMove;
-
-  const collisionTimer = setInterval(checkCollision, 120);
-  state.flutterTimers.push(collisionTimer);
 }
 
 /* ------------------------- Mini-game do vulcão (fase 10) -----------------
