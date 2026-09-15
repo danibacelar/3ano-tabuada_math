@@ -50,10 +50,11 @@ const PHASES = [
     name: "Floresta Encantada",
     subtitle: "Tabuada do 4",
     mapPos: { left: 10.5, top: 23.4 },
-    motion: "bob", shape: "mushroom", icon: "🍄",
+    motion: "bob", shape: "monster", icon: "🧌",
+    interaction: "drag", moverBare: true, targetIcon: "🍄", retargetDelay: 5000,
     palette: ["#E63946", "#F4A261", "#E9C46A", "#52B788"],
     bg: ["#1B4332", "#40916C"],
-    mechanicLabel: "Toque no cogumelo certo!"
+    mechanicLabel: "Arraste o monstro até o cogumelo certo!"
   },
   {
     id: 5, table: 5,

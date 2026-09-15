@@ -388,6 +388,38 @@ function spawnDragRound(question, phase, field, rect) {
   field.appendChild(mover);
 
   setupDragMover(mover, targets, homeLeft, homeTop, rect, question.correct);
+
+  if (phase.retargetDelay) {
+    startTargetRelocation(targets, phase.retargetDelay, w, h, targetPx);
+  }
+}
+
+// Se a criança demorar demais numa fase com "retargetDelay", os alvos
+// ainda não respondidos somem e reaparecem em outro lugar do campo — os
+// que já foram marcados como errados ficam parados onde estão.
+const RETARGET_SPOTS = [
+  { left: 16, top: 14 }, { left: 50, top: 10 }, { left: 84, top: 14 },
+  { left: 14, top: 40 }, { left: 50, top: 42 }, { left: 86, top: 40 },
+  { left: 22, top: 64 }, { left: 78, top: 64 }
+];
+
+function startTargetRelocation(targets, delay, w, h, targetPx) {
+  const timer = setInterval(() => {
+    const active = targets.filter(t => !t.classList.contains("wrong-disabled") && !t.dataset.locked);
+    if (active.length === 0) { clearInterval(timer); return; }
+    const spots = shuffle(RETARGET_SPOTS).slice(0, active.length);
+    active.forEach((t, i) => {
+      t.classList.add("target-hide");
+      const moveTimer = setTimeout(() => {
+        const spot = spots[i];
+        t.style.left = clampedLeftPx(spot.left, w, targetPx) + "px";
+        t.style.top = clamp((h * spot.top / 100) - targetPx / 2, 6, h - targetPx - 6) + "px";
+        t.classList.remove("target-hide");
+      }, 260);
+      state.flutterTimers.push(moveTimer);
+    });
+  }, delay);
+  state.flutterTimers.push(timer);
 }
 
 function setupDragMover(mover, targets, homeLeft, homeTop, rect, correct) {
