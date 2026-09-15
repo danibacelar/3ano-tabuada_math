@@ -87,7 +87,7 @@ const PHASES = [
     interaction: "steer", targetIcon: "🧊",
     palette: ["#90E0EF", "#ADE8F4", "#CAF0F8", "#48CAE4"],
     bg: ["#90E0EF", "#CAF0F8"],
-    mechanicLabel: "Guie o esquiador com o mouse (ou o dedo) até o número certo e toque na tela para pegar!"
+    mechanicLabel: "Guie o esquiador com o mouse (ou o dedo) até o número certo cair em cima dele!"
   },
   {
     id: 8, table: 8,

@@ -18,8 +18,7 @@ let state = {
   mistakes: 0,
   hadMistakeThisQuestion: false,
   flutterTimers: [],
-  steerListener: null,
-  steerClickListener: null
+  steerListener: null
 };
 
 /* ---------------------------------------------------------------------- */
@@ -332,10 +331,6 @@ function spawnItems(question, phase) {
     field.removeEventListener("pointermove", state.steerListener);
     state.steerListener = null;
   }
-  if (state.steerClickListener) {
-    field.removeEventListener("click", state.steerClickListener);
-    state.steerClickListener = null;
-  }
 
   if (phase.interaction === "drag") {
     spawnDragRound(question, phase, field, rect);
@@ -598,11 +593,9 @@ function setupDragMover(mover, targets, homeLeft, homeTop, rect, correct) {
    Usado por phase.interaction === "steer": os 4 números caem continuamente
    (que nem os flocos da fase 6), e o esquiador fica numa altura fixa
    seguindo o mouse (ou o dedo, arrastando no celular) só na horizontal —
-   os números não têm clique próprio. Para "acertar", a criança precisa
-   guiar o esquiador até ficar embaixo do número certo E tocar a tela
-   nesse momento; tocar sem estar alinhado com nenhum número não faz nada,
-   e tocar alinhado com um errado desabilita ele (igual às outras fases),
-   deixando o esquiador livre para tentar de novo. --------------------- */
+   sem precisar clicar. Assim que um número passa em cima do esquiador,
+   já conta como resposta: se for o certo, acerta; se for errado, ele fica
+   desabilitado (igual às outras fases) e o esquiador segue livre. ------ */
 function spawnSteerRound(question, phase, field, rect) {
   const w = Math.max(rect.width, 300);
   const h = Math.max(rect.height, 320);
@@ -647,9 +640,8 @@ function spawnSteerRound(question, phase, field, rect) {
     skier.style.left = left + "px";
   }
 
-  function onTap(e) {
-    onMove(e);
-    const margin = 16;
+  function checkCollision() {
+    const margin = 14;
     const sRect = skier.getBoundingClientRect();
     const hit = targets.find(t => {
       if (t.classList.contains("wrong-disabled") || t.dataset.locked) return false;
@@ -661,9 +653,10 @@ function spawnSteerRound(question, phase, field, rect) {
   }
 
   field.addEventListener("pointermove", onMove);
-  field.addEventListener("click", onTap);
   state.steerListener = onMove;
-  state.steerClickListener = onTap;
+
+  const collisionTimer = setInterval(checkCollision, 120);
+  state.flutterTimers.push(collisionTimer);
 }
 
 /* ------------------------- Mini-game do vulcão (fase 10) -----------------
