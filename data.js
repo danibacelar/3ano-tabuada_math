@@ -84,10 +84,10 @@ const PHASES = [
     subtitle: "Tabuada do 7",
     mapPos: { left: 58.5, top: 37.8 },
     motion: "bob", shape: "skier", icon: "⛷️",
-    interaction: "steer", targetIcon: "🚩",
+    interaction: "steer", targetIcon: "🧊",
     palette: ["#90E0EF", "#ADE8F4", "#CAF0F8", "#48CAE4"],
     bg: ["#90E0EF", "#CAF0F8"],
-    mechanicLabel: "Mexa o mouse (ou arraste o dedo) para guiar o esquiador até o resultado certo!"
+    mechanicLabel: "Guie o esquiador com o mouse (ou o dedo) até o número certo e toque na tela para pegar!"
   },
   {
     id: 8, table: 8,
