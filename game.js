@@ -370,7 +370,26 @@ function spawnItems(question, phase) {
     const item = document.createElement("div");
     item.dataset.value = value;
 
-    if (phase.optionVisual) {
+    const useImageVisual = phase.optionVisual === "image" && value >= (phase.optionImageMin || 1) && value <= (phase.optionImageMax || 10);
+
+    if (useImageVisual) {
+      // Balão-foto pronto (número já vem desenhado na imagem) — usado
+      // quando o valor cai dentro do intervalo com imagem disponível;
+      // fora dele cai no visual clássico (bolinha colorida) mais abaixo.
+      const bigW = Math.round(currentItemSize() * 1.35);
+      const bigH = Math.round(bigW * 1.44);
+      item.className = `item item-balloon-visual motion-${phase.motion}`;
+      item.style.width = bigW + "px";
+      item.style.height = bigH + "px";
+
+      const img = document.createElement("img");
+      img.src = `assets/${phase.optionImagePrefix}${value}.png`;
+      img.alt = "";
+      img.draggable = false;
+      item.appendChild(img);
+
+      positionItem(item, phase.motion, i, n, rect, bigH);
+    } else if (phase.optionVisual) {
       const bigPx = Math.round(currentItemSize() * 1.5);
       item.className = `item item-emoji-style motion-${phase.motion}`;
       item.style.width = bigPx + "px";

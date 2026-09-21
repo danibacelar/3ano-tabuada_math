@@ -646,6 +646,23 @@ button {
   line-height: 1;
   filter: drop-shadow(0 6px 8px rgba(0,0,0,0.2));
 }
+
+/* Balão-foto (fase 1) — o número já vem desenhado na imagem, então o
+   item fica só com a foto, sem bolinha colorida nem selo de número. */
+.item.item-balloon-visual {
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+.item-balloon-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 10px rgba(0,0,0,0.3));
+}
 .item-emoji-number {
   position: relative;
   z-index: 1;
