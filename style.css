@@ -377,6 +377,23 @@ button {
   100% { transform: translateY(14px) scale(0);    opacity: 0; }
 }
 
+/* Prévia com movimento da esquerda pra direita, em vez de subir — usada
+   pelas fases de arrastar onde o mensageiro se move na horizontal até
+   um alvo do outro lado do campo (ex: fase 3). */
+.intro-demo-item.intro-demo-horizontal {
+  bottom: auto;
+  top: 27px;
+  left: 6px;
+  animation-name: introFloatPopHorizontal;
+}
+@keyframes introFloatPopHorizontal {
+  0%   { left: 6px;               transform: scale(1);   opacity: 1; }
+  62%  { left: calc(100% - 76px); transform: scale(1);   opacity: 1; }
+  76%  { left: calc(100% - 86px); transform: scale(1.4); opacity: 1; }
+  84%  { left: calc(100% - 86px); transform: scale(0);   opacity: 0; }
+  100% { left: 6px;               transform: scale(0);   opacity: 0; }
+}
+
 .intro-mechanic {
   margin-top: 14px;
   font-size: 17px;

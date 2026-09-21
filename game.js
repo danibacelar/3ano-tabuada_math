@@ -171,6 +171,9 @@ function renderIntroDemo(phase) {
   demo.style.background = phaseBackgroundCss(phase);
   const item = document.createElement("div");
   item.className = `intro-demo-item shape-${phase.shape}`;
+  if (phase.introDemoHorizontal) {
+    item.classList.add("intro-demo-horizontal");
+  }
   if (phase.moverImage) {
     item.classList.add("intro-demo-item-bare");
   } else {

@@ -54,6 +54,7 @@ const PHASES = [
     interaction: "drag", moverBare: true, treeDecor: true, optionVisual: "flower",
     optionImagePrefix: "fase3_flower_", optionImageMin: 3, optionImageMax: 30, optionImageStep: 3,
     moverHome: { left: 15, top: 50 },
+    introDemoHorizontal: true,
     targetGrid: [
       { left: 82, top: 16 }, { left: 82, top: 40 },
       { left: 82, top: 64 }, { left: 82, top: 88 }
