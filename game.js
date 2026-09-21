@@ -146,7 +146,7 @@ function showLockedToast() {
 let introPhase = null;
 function openIntro(phase) {
   introPhase = phase;
-  $("#intro-icon").textContent = phase.icon;
+  setIconVisual($("#intro-icon"), phase);
   $("#intro-name").textContent = phase.name;
   $("#intro-subtitle").textContent = phase.subtitle;
   $("#intro-mechanic").textContent = phase.mechanicLabel;
@@ -171,10 +171,30 @@ function renderIntroDemo(phase) {
   demo.style.background = phaseBackgroundCss(phase);
   const item = document.createElement("div");
   item.className = `intro-demo-item shape-${phase.shape}`;
-  const color = phase.palette[0];
-  item.style.background = `radial-gradient(circle at 32% 28%, ${lighten(color)}, ${color} 75%)`;
-  item.textContent = phase.icon;
+  if (phase.moverImage) {
+    item.classList.add("intro-demo-item-bare");
+  } else {
+    const color = phase.palette[0];
+    item.style.background = `radial-gradient(circle at 32% 28%, ${lighten(color)}, ${color} 75%)`;
+  }
+  setIconVisual(item, phase);
   demo.appendChild(item);
+}
+
+// Ícone de uma fase: imagem própria (phase.moverImage) quando definida,
+// senão o emoji de sempre (phase.icon). Usado no ícone grande da intro,
+// na prévia animada e no "mensageiro" das fases de arrastar.
+function setIconVisual(el, phase) {
+  el.innerHTML = "";
+  if (phase.moverImage) {
+    const img = document.createElement("img");
+    img.src = `assets/${phase.moverImage}`;
+    img.alt = "";
+    img.draggable = false;
+    el.appendChild(img);
+  } else {
+    el.textContent = phase.icon;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -475,7 +495,7 @@ function spawnDragRound(question, phase, field, rect) {
     mover.style.background = `radial-gradient(circle at 32% 28%, ${lighten(moverColor)}, ${moverColor} 75%)`;
     mover.style.fontSize = "34px";
   }
-  mover.textContent = phase.icon;
+  setIconVisual(mover, phase);
 
   const homeLeft = phase.moverHome
     ? clamp((w * phase.moverHome.left / 100) - moverPx / 2, 6, w - moverPx - 6)

@@ -29,6 +29,12 @@ const PHASES = [
     mapPos: { left: 19.3, top: 59.9 },
     motion: "flutterSlow", shape: "bird", icon: "🐦",
     interaction: "drag", targetIcon: "🪱", moverBare: true, optionVisual: "emoji",
+    moverImage: "fase2_bird_cutout.png",
+    moverHome: { left: 50, top: 18 },
+    targetGrid: [
+      { left: 24, top: 58 }, { left: 76, top: 58 },
+      { left: 24, top: 84 }, { left: 76, top: 84 }
+    ],
     dragHint: "Arraste o passarinho até o resultado correto",
     palette: ["#FFB4A2", "#B5838D", "#8D99AE", "#E5989B"],
     bg: ["#CDE7B0", "#A8D8B9"],

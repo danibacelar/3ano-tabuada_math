@@ -578,6 +578,35 @@ button {
   50% { transform: translateY(-8px); }
 }
 
+/* mensageiro com imagem própria (phase.moverImage) em vez de emoji */
+.item-mover img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 8px rgba(0,0,0,0.28));
+}
+.intro-icon img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  display: inline-block;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+}
+.intro-demo-item.intro-demo-item-bare {
+  background: none;
+  box-shadow: none;
+  border: none;
+}
+.intro-demo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.25));
+}
+
 /* mover "espelhado" (fase 7) — vira o bichinho pra ele ficar de frente
    pro lado que os alvos estão, em vez do espelhamento padrão do emoji. */
 .item-mover.mover-flip { transform: scaleX(-1); }
