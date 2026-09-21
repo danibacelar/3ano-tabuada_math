@@ -329,10 +329,17 @@ button {
 .intro-icon { font-size: 54px; margin-bottom: 8px; }
 .intro-name { font-size: 26px; color: var(--ink); }
 .intro-subtitle {
+  display: inline-block;
   font-family: "Baloo 2", sans-serif;
-  color: var(--forest);
-  font-size: 15px;
-  margin-top: 4px;
+  font-weight: 700;
+  color: #fff;
+  font-size: 19px;
+  letter-spacing: 0.2px;
+  margin-top: 8px;
+  padding: 5px 16px;
+  border-radius: 999px;
+  background: linear-gradient(160deg, var(--forest), var(--forest-deep));
+  box-shadow: 0 4px 10px rgba(31, 90, 63, 0.35);
 }
 .intro-demo {
   position: relative;
@@ -372,11 +379,14 @@ button {
 
 .intro-mechanic {
   margin-top: 14px;
-  font-size: 14px;
-  color: var(--ink-soft);
-  background: #F3ECDC;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--ink);
+  background: #FFE9B8;
+  border: 2px solid var(--gold);
   border-radius: var(--radius-sm);
-  padding: 10px 14px;
+  padding: 12px 16px;
 }
 .intro-stars { margin-top: 16px; font-size: 22px; }
 .intro-actions {

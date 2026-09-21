@@ -18,11 +18,12 @@ const PHASES = [
     subtitle: "Tabuada do 1",
     mapPos: { left: 17.1, top: 94.0 },
     motion: "rise", shape: "balloon", icon: "🎈",
+    moverImage: "fase1_balloon_1.png",
     palette: ["#FF6B6B", "#4ECDC4", "#FFD93D", "#6C5CE7"],
     bg: ["#BFE6B0", "#EAF6D8"],
     bgImage: "fase1_cenário.jpeg",
     optionVisual: "image", optionImagePrefix: "fase1_balloon_", optionImageMin: 1, optionImageMax: 10,
-    mechanicLabel: "Estoure o balão certo!"
+    mechanicLabel: "Clique no balão com a resposta certa!"
   },
   {
     id: 2, table: 2,
