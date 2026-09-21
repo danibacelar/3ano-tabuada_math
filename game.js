@@ -427,7 +427,7 @@ function spawnDragRound(question, phase, field, rect) {
       target.className = "item item-target item-emoji-style";
       const emoji = document.createElement("span");
       emoji.className = "item-emoji-visual";
-      emoji.textContent = phase.optionVisual === "flower" ? FLOWER_EMOJIS[i % FLOWER_EMOJIS.length] : phase.icon;
+      emoji.textContent = phase.optionVisual === "flower" ? FLOWER_EMOJIS[i % FLOWER_EMOJIS.length] : (phase.targetIcon || phase.icon);
       emoji.style.fontSize = Math.round(targetPx * 0.92) + "px";
       target.appendChild(emoji);
 
