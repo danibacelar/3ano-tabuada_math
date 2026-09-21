@@ -50,6 +50,7 @@ const PHASES = [
     subtitle: "Tabuada do 3",
     mapPos: { left: 30.2, top: 41.9 },
     motion: "flutter", shape: "butterfly", icon: "🦋",
+    moverImage: "fase3_butterfly_cutout.png",
     interaction: "drag", moverBare: true, treeDecor: true, optionVisual: "flower",
     optionImagePrefix: "fase3_flower_", optionImageMin: 3, optionImageMax: 30, optionImageStep: 3,
     targetGrid: [
