@@ -156,10 +156,19 @@ function openIntro(phase) {
   showScreen("screen-intro");
 }
 
+// Fundo da fase: imagem própria (phase.bgImage) quando definida, senão o
+// degradê de sempre com as duas cores de phase.bg.
+function phaseBackgroundCss(phase) {
+  if (phase.bgImage) {
+    return `url("assets/${phase.bgImage}") center / cover no-repeat`;
+  }
+  return `linear-gradient(160deg, ${phase.bg[0]}, ${phase.bg[1]})`;
+}
+
 function renderIntroDemo(phase) {
   const demo = $("#intro-demo");
   demo.innerHTML = "";
-  demo.style.background = `linear-gradient(160deg, ${phase.bg[0]}, ${phase.bg[1]})`;
+  demo.style.background = phaseBackgroundCss(phase);
   const item = document.createElement("div");
   item.className = `intro-demo-item shape-${phase.shape}`;
   const color = phase.palette[0];
@@ -189,7 +198,7 @@ function startRound(phase) {
   state.correctFirstTry = 0;
   state.mistakes = 0;
 
-  $("#play-bg").style.background = `linear-gradient(160deg, ${phase.bg[0]}, ${phase.bg[1]})`;
+  $("#play-bg").style.background = phaseBackgroundCss(phase);
   renderPlayDecor(phase);
   $("#hud-score").textContent = "⭐ 0";
   $("#hud-combo").textContent = "";
