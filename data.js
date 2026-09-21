@@ -53,9 +53,10 @@ const PHASES = [
     moverImage: "fase3_butterfly_cutout.png",
     interaction: "drag", moverBare: true, treeDecor: true, optionVisual: "flower",
     optionImagePrefix: "fase3_flower_", optionImageMin: 3, optionImageMax: 30, optionImageStep: 3,
+    moverHome: { left: 15, top: 50 },
     targetGrid: [
-      { left: 20, top: 46 }, { left: 80, top: 46 },
-      { left: 20, top: 88 }, { left: 80, top: 88 }
+      { left: 82, top: 16 }, { left: 82, top: 40 },
+      { left: 82, top: 64 }, { left: 82, top: 88 }
     ],
     palette: ["#B983FF", "#FF9F9F", "#5AC8FA", "#FF7EB6"],
     bg: ["#FDE2E4", "#DCEEDD"],

@@ -489,15 +489,26 @@ function spawnDragRound(question, phase, field, rect) {
   const MIN_GAP = 2 * DROP_HIT_MARGIN + SAFETY_BUFFER;
   const rowTops = Array.from(new Set(grid.map(g => g.top))).sort((a, b) => a - b);
   let rowTopPxMap = null;
-  if (rowTops.length === 2) {
-    const maxSafeTargetPx = (h - 2 * MARGIN - MIN_GAP) / 2;
+  if (rowTops.length >= 2) {
+    const nRows = rowTops.length;
+    const maxSafeTargetPx = (h - 2 * MARGIN - (nRows - 1) * MIN_GAP) / nRows;
     targetPx = Math.max(52, Math.min(targetPx, Math.floor(maxSafeTargetPx)));
-    let a = clamp(h * rowTops[0] / 100 - targetPx / 2, MARGIN, h - targetPx - MARGIN);
-    let b = clamp(h * rowTops[1] / 100 - targetPx / 2, MARGIN, h - targetPx - MARGIN);
-    if (b - (a + targetPx) < MIN_GAP) { a = MARGIN; b = h - targetPx - MARGIN; }
+    const naturalPx = rowTops.map(t => clamp(h * t / 100 - targetPx / 2, MARGIN, h - targetPx - MARGIN));
+    let tooTight = false;
+    for (let i = 1; i < naturalPx.length; i++) {
+      if (naturalPx[i] - (naturalPx[i - 1] + targetPx) < MIN_GAP) { tooTight = true; break; }
+    }
     rowTopPxMap = {};
-    rowTopPxMap[rowTops[0]] = a;
-    rowTopPxMap[rowTops[1]] = b;
+    if (tooTight) {
+      // Sem espaço pra respeitar as % originais com folga segura — espalha
+      // as fileiras igualmente entre as pontas do campo.
+      const span = h - targetPx - 2 * MARGIN;
+      rowTops.forEach((t, i) => {
+        rowTopPxMap[t] = MARGIN + (nRows === 1 ? 0 : span * i / (nRows - 1));
+      });
+    } else {
+      rowTops.forEach((t, i) => { rowTopPxMap[t] = naturalPx[i]; });
+    }
   }
   const targets = [];
 
