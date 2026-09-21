@@ -439,8 +439,34 @@ function spawnDragRound(question, phase, field, rect) {
   const h = Math.max(rect.height, 320);
   const itemPx = currentItemSize();
   const isEmojiStyle = !!phase.optionVisual;
-  const targetPx = isEmojiStyle ? Math.round(itemPx * 1.55) : itemPx;
+  let targetPx = isEmojiStyle ? Math.round(itemPx * 1.55) : itemPx;
   const grid = phase.targetGrid || (phase.treeDecor ? TREE_TARGET_GRID : DRAG_TARGET_GRID);
+
+  // Em janelas de desktop curtas (largas mas com pouca altura), uma grade
+  // de 2 fileiras fixas em % pode deixar a fileira de cima "flutuando"
+  // longe do topo enquanto a de baixo é empurrada pro limite do campo —
+  // sobrando espaço não usado só de um lado e as duas quase se tocando.
+  // Quando isso aconteceria, empurra as duas fileiras pras pontas opostas
+  // do campo (em vez de respeitar a % exata) e, se mesmo assim não couber,
+  // encolhe o alvo — garantindo uma folga mínima real em pixels que bate
+  // com a margem usada no findDropTarget() do arraste, pra nunca acertar
+  // o alvo vizinho por engano.
+  const DROP_HIT_MARGIN = 16;
+  const SAFETY_BUFFER = 20;
+  const MARGIN = 6;
+  const MIN_GAP = 2 * DROP_HIT_MARGIN + SAFETY_BUFFER;
+  const rowTops = Array.from(new Set(grid.map(g => g.top))).sort((a, b) => a - b);
+  let rowTopPxMap = null;
+  if (rowTops.length === 2) {
+    const maxSafeTargetPx = (h - 2 * MARGIN - MIN_GAP) / 2;
+    targetPx = Math.max(52, Math.min(targetPx, Math.floor(maxSafeTargetPx)));
+    let a = clamp(h * rowTops[0] / 100 - targetPx / 2, MARGIN, h - targetPx - MARGIN);
+    let b = clamp(h * rowTops[1] / 100 - targetPx / 2, MARGIN, h - targetPx - MARGIN);
+    if (b - (a + targetPx) < MIN_GAP) { a = MARGIN; b = h - targetPx - MARGIN; }
+    rowTopPxMap = {};
+    rowTopPxMap[rowTops[0]] = a;
+    rowTopPxMap[rowTops[1]] = b;
+  }
   const targets = [];
 
   question.options.forEach((value, i) => {
@@ -450,7 +476,7 @@ function spawnDragRound(question, phase, field, rect) {
     target.style.width = targetPx + "px";
     target.style.height = targetPx + "px";
     target.style.left = clampedLeftPx(spot.left, w, targetPx) + "px";
-    target.style.top = clamp((h * spot.top / 100) - targetPx / 2, 6, h - targetPx - 6) + "px";
+    target.style.top = (rowTopPxMap ? rowTopPxMap[spot.top] : clamp((h * spot.top / 100) - targetPx / 2, 6, h - targetPx - 6)) + "px";
 
     if (isEmojiStyle) {
       target.className = "item item-target item-emoji-style";
@@ -563,11 +589,22 @@ function setupDragMover(mover, targets, homeLeft, homeTop, rect, correct) {
     const cx = mRect.left + mRect.width / 2;
     const cy = mRect.top + mRect.height / 2;
     const margin = 16;
-    return targets.find(t => {
-      if (t.classList.contains("wrong-disabled") || t.dataset.locked) return false;
+    // Entre os alvos cujo hitbox (com margem) contém o centro do mensageiro,
+    // escolhe o de centro mais próximo — evita "roubar" o drop de um alvo
+    // vizinho só porque veio antes na lista, quando os alvos estão perto.
+    let best = null;
+    let bestDist = Infinity;
+    targets.forEach(t => {
+      if (t.classList.contains("wrong-disabled") || t.dataset.locked) return;
       const r = t.getBoundingClientRect();
-      return cx >= r.left - margin && cx <= r.right + margin && cy >= r.top - margin && cy <= r.bottom + margin;
+      const inRange = cx >= r.left - margin && cx <= r.right + margin && cy >= r.top - margin && cy <= r.bottom + margin;
+      if (!inRange) return;
+      const tcx = r.left + r.width / 2;
+      const tcy = r.top + r.height / 2;
+      const dist = Math.hypot(cx - tcx, cy - tcy);
+      if (dist < bestDist) { bestDist = dist; best = t; }
     });
+    return best;
   }
 
   function onPointerDown(e) {
