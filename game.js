@@ -285,7 +285,10 @@ function renderPlayDecor(phase) {
   field.querySelectorAll(".tree-scene").forEach(el => el.remove());
   field.querySelectorAll(".volcano-scene").forEach(el => el.remove());
 
-  if (phase.treeDecor) {
+  if (phase.treeDecor && !phase.bgImage) {
+    // A árvore desenhada em CSS só entra quando não há uma foto de fundo
+    // própria (phase.bgImage) — senão as duas cenas ficam desenhadas
+    // uma por cima da outra.
     field.insertBefore(buildTreeNode(FLOWER_EMOJIS, "left:0; top:0; width:100%; height:100%;"), field.firstChild);
   } else if (phase.orchardDecor) {
     const fruitEmojis = ["🍎", "🍏"];
