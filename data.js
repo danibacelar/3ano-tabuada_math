@@ -241,13 +241,14 @@ function buildQuestion(fact, phase) {
     if (Math.random() < 0.5) { dispA = fact.b; dispB = fact.a; }
   }
   const correct = fact.a * fact.b;
-  const options = buildOptions(dispA, dispB, correct);
+  const options = buildOptions(dispA, dispB, correct, phase.optionImageMax);
   return { key: fact.key, a: dispA, b: dispB, correct, options };
 }
 
-function buildOptions(a, b, correct) {
+function buildOptions(a, b, correct, maxValue) {
   const candidates = new Set();
-  const addIfValid = (v) => { v = Math.round(v); if (v > 0 && v !== correct && v <= 121) candidates.add(v); };
+  const cap = maxValue || 121;
+  const addIfValid = (v) => { v = Math.round(v); if (v > 0 && v !== correct && v <= cap) candidates.add(v); };
   addIfValid(a * (b + 1));
   addIfValid(a * Math.max(1, b - 1));
   addIfValid((a + 1) * b);
