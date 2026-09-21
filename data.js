@@ -279,11 +279,17 @@ function starsForResult(firstTryCorrect, totalQuestions) {
 }
 
 /* ---------- 7. PERSISTÊNCIA (localStorage) --------------------------------- */
+// Todas as fases normais (1 a 10) já começam destrancadas — só o Challenge
+// (a fase "challenge") fica trancado até jogar todas elas pelo menos uma vez.
+function normalPhaseIds() {
+  return PHASES.filter(p => p.table !== "challenge").map(p => p.id);
+}
+
 function defaultSave() {
   const phaseStars = {}, phaseBestScore = {}, phaseBestCombo = {};
   PHASES.forEach(p => { phaseStars[p.id] = 0; phaseBestScore[p.id] = 0; phaseBestCombo[p.id] = 0; });
   return {
-    unlockedPhases: [1],
+    unlockedPhases: normalPhaseIds(),
     phaseStars, phaseBestScore, phaseBestCombo,
     factStats: {},
     bestComboOverall: 0
@@ -296,12 +302,16 @@ function loadSave() {
     if (!raw) return defaultSave();
     const parsed = JSON.parse(raw);
     const base = defaultSave();
-    return Object.assign(base, parsed, {
+    const merged = Object.assign(base, parsed, {
       phaseStars: Object.assign(base.phaseStars, parsed.phaseStars || {}),
       phaseBestScore: Object.assign(base.phaseBestScore, parsed.phaseBestScore || {}),
       phaseBestCombo: Object.assign(base.phaseBestCombo, parsed.phaseBestCombo || {}),
       factStats: parsed.factStats || {}
     });
+    // Quem já tinha progresso salvo do sistema antigo (desbloqueio linear)
+    // também ganha todas as fases normais destrancadas agora.
+    merged.unlockedPhases = Array.from(new Set([...(merged.unlockedPhases || []), ...normalPhaseIds()]));
+    return merged;
   } catch (e) {
     return defaultSave();
   }

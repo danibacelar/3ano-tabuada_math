@@ -38,7 +38,7 @@ function totalStars() {
 /* HOME SCREEN                                                             */
 /* ---------------------------------------------------------------------- */
 function renderHome() {
-  const hasProgress = SAVE.unlockedPhases.length > 1 || totalStars() > 0;
+  const hasProgress = totalStars() > 0;
   $("#btn-start").textContent = hasProgress ? "Continuar Jornada" : "Começar Aventura";
   $("#home-reset-link").style.display = hasProgress ? "inline-block" : "none";
   showScreen("screen-home");
@@ -133,7 +133,7 @@ function renderMap() {
 let lockedToastTimer = null;
 function showLockedToast() {
   const toast = $("#locked-toast");
-  const msgs = ["Ainda trancada! Complete a fase anterior primeiro. 🔒", "Continue a aventura para destrancar aqui! 🗺️"];
+  const msgs = ["Ainda trancada! Jogue todas as outras fases primeiro. 🔒", "Complete todas as fases pra destrancar o desafio final! 🏆"];
   toast.textContent = pick(msgs);
   toast.classList.add("show");
   clearTimeout(lockedToastTimer);
@@ -930,14 +930,17 @@ function endRound() {
   SAVE.phaseBestCombo[phase.id] = Math.max(SAVE.phaseBestCombo[phase.id] || 0, state.bestComboRound);
   SAVE.bestComboOverall = Math.max(SAVE.bestComboOverall, state.bestComboRound);
 
+  // Todas as fases normais já ficam destrancadas desde o início — o Challenge
+  // é a única que precisa ser desbloqueada, e só abre depois que a criança
+  // já tiver jogado (pelo menos 1 estrela) todas as fases normais.
   let unlockedPhaseObj = null;
-  const idx = PHASES.findIndex(p => p.id === phase.id);
-  if (idx >= 0 && idx < PHASES.length - 1) {
-    const nextPhase = PHASES[idx + 1];
-    if (!SAVE.unlockedPhases.includes(nextPhase.id)) {
-      SAVE.unlockedPhases.push(nextPhase.id);
-      unlockedPhaseObj = nextPhase;
-      justUnlockedId = nextPhase.id;
+  const challengePhase = PHASES.find(p => p.table === "challenge");
+  if (phase.table !== "challenge" && challengePhase && !SAVE.unlockedPhases.includes(challengePhase.id)) {
+    const allPlayed = normalPhaseIds().every(id => (SAVE.phaseStars[id] || 0) > 0);
+    if (allPlayed) {
+      SAVE.unlockedPhases.push(challengePhase.id);
+      unlockedPhaseObj = challengePhase;
+      justUnlockedId = challengePhase.id;
     }
   }
 
