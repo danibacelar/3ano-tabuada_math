@@ -160,7 +160,7 @@ function openIntro(phase) {
 // degradê de sempre com as duas cores de phase.bg.
 function phaseBackgroundCss(phase) {
   if (phase.bgImage) {
-    return `url("assets/${phase.bgImage}") center / cover no-repeat`;
+    return `url("${encodeURI("assets/" + phase.bgImage)}") center / cover no-repeat`;
   }
   return `linear-gradient(160deg, ${phase.bg[0]}, ${phase.bg[1]})`;
 }

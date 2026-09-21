@@ -20,6 +20,7 @@ const PHASES = [
     motion: "rise", shape: "balloon", icon: "🎈",
     palette: ["#FF6B6B", "#4ECDC4", "#FFD93D", "#6C5CE7"],
     bg: ["#BFE6B0", "#EAF6D8"],
+    bgImage: "fase1_cenário.jpeg",
     mechanicLabel: "Estoure o balão certo!"
   },
   {
