@@ -22,7 +22,7 @@ const PHASES = [
     palette: ["#FF6B6B", "#4ECDC4", "#FFD93D", "#6C5CE7"],
     bg: ["#BFE6B0", "#EAF6D8"],
     bgImage: "fase1_cenário.jpeg",
-    optionVisual: "image", optionImagePrefix: "fase1_balloon_", optionImageMin: 1, optionImageMax: 10,
+    optionImagePrefix: "fase1_balloon_", optionImageMin: 1, optionImageMax: 10,
     mechanicLabel: "Clique no balão com a resposta certa!"
   },
   {
@@ -51,6 +51,7 @@ const PHASES = [
     mapPos: { left: 30.2, top: 41.9 },
     motion: "flutter", shape: "butterfly", icon: "🦋",
     interaction: "drag", moverBare: true, treeDecor: true, optionVisual: "flower",
+    optionImagePrefix: "fase3_flower_", optionImageMin: 3, optionImageMax: 30, optionImageStep: 3,
     targetGrid: [
       { left: 20, top: 46 }, { left: 80, top: 46 },
       { left: 20, top: 88 }, { left: 80, top: 88 }
@@ -247,14 +248,15 @@ function buildQuestion(fact, phase) {
     if (Math.random() < 0.5) { dispA = fact.b; dispB = fact.a; }
   }
   const correct = fact.a * fact.b;
-  const options = buildOptions(dispA, dispB, correct, phase.optionImageMax);
+  const options = buildOptions(dispA, dispB, correct, phase.optionImageMax, phase.optionImageStep);
   return { key: fact.key, a: dispA, b: dispB, correct, options };
 }
 
-function buildOptions(a, b, correct, maxValue) {
+function buildOptions(a, b, correct, maxValue, step) {
   const candidates = new Set();
   const cap = maxValue || 121;
-  const addIfValid = (v) => { v = Math.round(v); if (v > 0 && v !== correct && v <= cap) candidates.add(v); };
+  const st = step || 1;
+  const addIfValid = (v) => { v = Math.round(v); if (v > 0 && v !== correct && v <= cap && v % st === 0) candidates.add(v); };
   addIfValid(a * (b + 1));
   addIfValid(a * Math.max(1, b - 1));
   addIfValid((a + 1) * b);
@@ -267,7 +269,7 @@ function buildOptions(a, b, correct, maxValue) {
   addIfValid(correct - 10);
   let guard = 0;
   while (candidates.size < 9 && guard < 40) {
-    addIfValid(correct + (Math.floor(Math.random() * 21) - 10));
+    addIfValid(correct + st * (Math.floor(Math.random() * 21) - 10));
     guard++;
   }
   const arr = Array.from(candidates).filter(v => v !== correct);

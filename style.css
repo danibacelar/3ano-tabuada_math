@@ -659,13 +659,13 @@ button {
 
 /* Balão-foto (fase 1) — o número já vem desenhado na imagem, então o
    item fica só com a foto, sem bolinha colorida nem selo de número. */
-.item.item-balloon-visual {
+.item.item-photo-visual {
   background: none;
   border: none;
   box-shadow: none;
   border-radius: 0;
 }
-.item-balloon-visual img {
+.item-photo-visual img {
   width: 100%;
   height: 100%;
   object-fit: contain;

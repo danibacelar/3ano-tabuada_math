@@ -352,6 +352,16 @@ function nextQuestion() {
   spawnItems(state.question, state.phase);
 }
 
+// Uma opção usa a foto pronta (phase.optionImagePrefix) em vez do
+// emoji/bolinha quando o valor cai dentro do intervalo com imagem
+// disponível — usado nos balões da fase 1 e nas flores da fase 3.
+function useImageOption(phase, value) {
+  return !!phase.optionImagePrefix
+    && value >= (phase.optionImageMin || 1)
+    && value <= (phase.optionImageMax || 10)
+    && value % (phase.optionImageStep || 1) === 0;
+}
+
 /* ------------------------- Renderização dos itens ----------------------- */
 function spawnItems(question, phase) {
   const field = $("#play-field");
@@ -373,7 +383,7 @@ function spawnItems(question, phase) {
     const item = document.createElement("div");
     item.dataset.value = value;
 
-    const useImageVisual = phase.optionVisual === "image" && value >= (phase.optionImageMin || 1) && value <= (phase.optionImageMax || 10);
+    const useImageVisual = useImageOption(phase, value);
 
     if (useImageVisual) {
       // Balão-foto pronto (número já vem desenhado na imagem) — usado
@@ -381,7 +391,7 @@ function spawnItems(question, phase) {
       // fora dele cai no visual clássico (bolinha colorida) mais abaixo.
       const bigW = Math.round(currentItemSize() * 1.35);
       const bigH = Math.round(bigW * 1.44);
-      item.className = `item item-balloon-visual motion-${phase.motion}`;
+      item.className = `item item-photo-visual motion-${phase.motion}`;
       item.style.width = bigW + "px";
       item.style.height = bigH + "px";
 
@@ -500,7 +510,16 @@ function spawnDragRound(question, phase, field, rect) {
     target.style.left = clampedLeftPx(spot.left, w, targetPx) + "px";
     target.style.top = (rowTopPxMap ? rowTopPxMap[spot.top] : clamp((h * spot.top / 100) - targetPx / 2, 6, h - targetPx - 6)) + "px";
 
-    if (isEmojiStyle) {
+    if (isEmojiStyle && useImageOption(phase, value)) {
+      // Flor-foto pronta (número já vem desenhado na imagem) — usada
+      // quando o valor cai dentro do intervalo com imagem disponível.
+      target.className = "item item-target item-photo-visual";
+      const img = document.createElement("img");
+      img.src = `assets/${phase.optionImagePrefix}${value}.png`;
+      img.alt = "";
+      img.draggable = false;
+      target.appendChild(img);
+    } else if (isEmojiStyle) {
       target.className = "item item-target item-emoji-style";
       const emoji = document.createElement("span");
       emoji.className = "item-emoji-visual";
