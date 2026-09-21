@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=19">
+<link rel="stylesheet" href="style.css?v=20">
 </head>
 <body>
 <div id="app">
@@ -61,12 +61,14 @@
   <section id="screen-play" class="screen">
     <div class="play-bg" id="play-bg"></div>
     <div class="hud">
-      <button class="hud-btn" id="btn-quit">🗺️ Mapa</button>
-      <div class="hud-question" id="hud-question">? × ? = ?</div>
-      <div class="hud-right">
-        <div class="hud-score" id="hud-score">⭐ 0</div>
-        <div class="hud-combo" id="hud-combo"></div>
+      <div class="hud-top">
+        <button class="hud-btn" id="btn-quit">🗺️ Mapa</button>
+        <div class="hud-right">
+          <div class="hud-score" id="hud-score">⭐ 0</div>
+          <div class="hud-combo" id="hud-combo"></div>
+        </div>
       </div>
+      <div class="hud-question" id="hud-question">? × ? = ?</div>
     </div>
     <div class="progress-dots" id="progress-dots"></div>
     <div class="play-hint" id="play-hint" hidden></div>
