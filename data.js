@@ -105,6 +105,7 @@ const PHASES = [
     motion: "bob", shape: "skier", icon: "⛷️",
     interaction: "drag", moverBare: true, moverFlip: true, targetIcon: "🧊",
     moverHome: { left: 14, top: 50 },
+    introDemoHorizontal: true,
     targetGrid: [
       { left: 80, top: 16 }, { left: 80, top: 40 },
       { left: 80, top: 64 }, { left: 80, top: 88 }
